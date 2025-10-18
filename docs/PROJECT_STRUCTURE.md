@@ -4,7 +4,9 @@
 ride-sharing-api/
 ├── cmd/
 │   ├── api/
-│   │   └── main.go                    # Single entry point - wires all services
+│   │   └── main.go                    # Entry point for core API
+│   ├── trip-processor/
+│   │   └── main.go                    # Separate service for heavy workloads like matchmaking
 │   └── migrate/
 │       └── main.go                    # Separate tool for running database migrations
 │
