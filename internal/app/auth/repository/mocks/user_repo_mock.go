@@ -5,6 +5,7 @@ import (
 
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/app/auth/domain"
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/app/auth/repository"
+	"github.com/sayeed1999/ride-sharing-golang-api/internal/app/auth/usecase"
 )
 
 // MockUserRepository is a simple mock implementation for testing
@@ -15,11 +16,16 @@ type MockUserRepository struct {
 
 // NewMockUserRepository creates a new mock with 3 default users
 func NewMockUserRepository() *MockUserRepository {
+	// Generate real password hashes using existing functions
+	hash1, salt1, _ := generateUserPassword("password123")
+	hash2, salt2, _ := generateUserPassword("password456")
+	hash3, salt3, _ := generateUserPassword("password789")
+
 	return &MockUserRepository{
 		users: []domain.User{
-			{ID: 1, Email: "john@example.com", PasswordHash: "$2a$10$hash1", PasswordSalt: "salt1"},
-			{ID: 2, Email: "jane@example.com", PasswordHash: "$2a$10$hash2", PasswordSalt: "salt2"},
-			{ID: 3, Email: "admin@example.com", PasswordHash: "$2a$10$hash3", PasswordSalt: "salt3"},
+			{ID: 1, Email: "john@example.com", PasswordHash: hash1, PasswordSalt: salt1},
+			{ID: 2, Email: "jane@example.com", PasswordHash: hash2, PasswordSalt: salt2},
+			{ID: 3, Email: "admin@example.com", PasswordHash: hash3, PasswordSalt: salt3},
 		},
 		roles: []domain.Role{
 			{ID: 1, Name: "customer"},
@@ -27,6 +33,19 @@ func NewMockUserRepository() *MockUserRepository {
 			{ID: 3, Name: "admin"},
 		},
 	}
+}
+
+// generateUserPassword is a helper that uses existing password functions
+func generateUserPassword(password string) (string, string, error) {
+	salt, err := usecase.GenerateSalt()
+	if err != nil {
+		return "", "", err
+	}
+	hash, err := usecase.HashPassword(password, salt)
+	if err != nil {
+		return "", "", err
+	}
+	return hash, salt, nil
 }
 
 // CreateUser adds a new user to the mock

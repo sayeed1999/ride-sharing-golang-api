@@ -16,7 +16,7 @@ func (uc *LoginUsecase) Login(email, password string) error {
 		return errors.New("invalid credentials")
 	}
 
-	if !verifyPassword(password, user.PasswordSalt, user.PasswordHash) {
+	if !VerifyPassword(password, user.PasswordSalt, user.PasswordHash) {
 		return errors.New("invalid credentials")
 	}
 

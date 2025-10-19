@@ -7,7 +7,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func generateSalt() (string, error) {
+func GenerateSalt() (string, error) {
 	salt := make([]byte, 16)
 	_, err := rand.Read(salt)
 	if err != nil {
@@ -16,7 +16,7 @@ func generateSalt() (string, error) {
 	return base64.StdEncoding.EncodeToString(salt), nil
 }
 
-func hashPassword(password, salt string) (string, error) {
+func HashPassword(password, salt string) (string, error) {
 	salted := password + salt
 	hash, err := bcrypt.GenerateFromPassword([]byte(salted), bcrypt.DefaultCost)
 	if err != nil {
@@ -25,7 +25,7 @@ func hashPassword(password, salt string) (string, error) {
 	return string(hash), nil
 }
 
-func verifyPassword(password, salt, storedHash string) bool {
+func VerifyPassword(password, salt, storedHash string) bool {
 	salted := password + salt
 	err := bcrypt.CompareHashAndPassword([]byte(storedHash), []byte(salted))
 	return err == nil

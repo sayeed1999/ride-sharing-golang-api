@@ -18,11 +18,11 @@ func (uc *RegisterUsecase) Register(email, password, role string) error {
 	}
 
 	// Generate salt + hash
-	salt, err := generateSalt()
+	salt, err := GenerateSalt()
 	if err != nil {
 		return err
 	}
-	hash, err := hashPassword(password, salt)
+	hash, err := HashPassword(password, salt)
 	if err != nil {
 		return err
 	}
