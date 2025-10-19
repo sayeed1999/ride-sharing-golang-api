@@ -33,7 +33,7 @@ func main() {
 	{
 		// Auth routes under /api/auth/
 		authGroup := api.Group("/auth")
-		auth.ExposeRoutes(authGroup, db)
+		auth.ExposeRoutes(authGroup, db, cfg)
 	}
 
 	// Start server

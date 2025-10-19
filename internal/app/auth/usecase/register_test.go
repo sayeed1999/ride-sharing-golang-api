@@ -10,7 +10,10 @@ import (
 func TestRegisterUsecase_AddNewUser(t *testing.T) {
 	// Setup
 	mockRepo := mocks.NewMockUserRepository()
-	registerUC := &usecase.RegisterUsecase{UserRepo: mockRepo}
+	registerUC := &usecase.RegisterUsecase{
+		UserRepo:                  mockRepo,
+		RequireRoleOnRegistration: true,
+	}
 
 	initialUserCount := mockRepo.GetUserCount()
 
@@ -23,7 +26,7 @@ func TestRegisterUsecase_AddNewUser(t *testing.T) {
 	}
 
 	// Check user count increased
-	if mockRepo.GetUserCount() != 4 { // 3 default + 1 new
+	if mockRepo.GetUserCount() != initialUserCount+1 {
 		t.Errorf("Expected %d users, but got %d", initialUserCount+1, mockRepo.GetUserCount())
 	}
 
@@ -40,7 +43,10 @@ func TestRegisterUsecase_AddNewUser(t *testing.T) {
 func TestRegisterUsecase_AddExistingUser(t *testing.T) {
 	// Setup
 	mockRepo := mocks.NewMockUserRepository()
-	registerUC := &usecase.RegisterUsecase{UserRepo: mockRepo}
+	registerUC := &usecase.RegisterUsecase{
+		UserRepo:                  mockRepo,
+		RequireRoleOnRegistration: true,
+	}
 
 	// Test adding existing user (john@example.com is in default users)
 	err := registerUC.Register("john@example.com", "password123", "customer")
@@ -56,5 +62,121 @@ func TestRegisterUsecase_AddExistingUser(t *testing.T) {
 	// Check user count didn't increase
 	if mockRepo.GetUserCount() != 3 { // Should still be 3 default users
 		t.Errorf("Expected 3 users, but got %d", mockRepo.GetUserCount())
+	}
+}
+
+func TestRegisterUsecase_RoleRequiredWhenFeatureEnabled(t *testing.T) {
+	// Setup
+	mockRepo := mocks.NewMockUserRepository()
+	registerUC := &usecase.RegisterUsecase{
+		UserRepo:                  mockRepo,
+		RequireRoleOnRegistration: true,
+	}
+
+	// Test registration without role
+	err := registerUC.Register("newuser@example.com", "password123", "")
+
+	// Assert
+	if err == nil {
+		t.Error("Expected error for missing role, but got nil")
+	}
+	if err.Error() != "role is required for registration" {
+		t.Errorf("Expected 'role is required for registration', but got: %s", err.Error())
+	}
+
+	// Test registration with empty/whitespace role
+	err = registerUC.Register("newuser2@example.com", "password123", "   ")
+
+	// Assert
+	if err == nil {
+		t.Error("Expected error for whitespace-only role, but got nil")
+	}
+	if err.Error() != "role is required for registration" {
+		t.Errorf("Expected 'role is required for registration', but got: %s", err.Error())
+	}
+}
+
+func TestRegisterUsecase_RoleNotRequiredWhenFeatureDisabled(t *testing.T) {
+	// Setup
+	mockRepo := mocks.NewMockUserRepository()
+	registerUC := &usecase.RegisterUsecase{
+		UserRepo:                  mockRepo,
+		RequireRoleOnRegistration: false,
+	}
+
+	initialUserCount := mockRepo.GetUserCount()
+
+	// Test registration without role (should succeed)
+	err := registerUC.Register("newuser@example.com", "password123", "")
+
+	// Assert
+	if err != nil {
+		t.Errorf("Expected no error when role not required, but got: %s", err.Error())
+	}
+
+	// Check user count increased
+	if mockRepo.GetUserCount() != initialUserCount+1 {
+		t.Errorf("Expected %d users, but got %d", initialUserCount+1, mockRepo.GetUserCount())
+	}
+
+	// Verify user was created
+	user, err := mockRepo.FindByEmail("newuser@example.com")
+	if err != nil {
+		t.Errorf("Expected to find new user, but got error: %s", err.Error())
+	}
+	if user.Email != "newuser@example.com" {
+		t.Errorf("Expected email 'newuser@example.com', but got '%s'", user.Email)
+	}
+}
+
+func TestRegisterUsecase_RoleAssignmentWhenFeatureEnabled(t *testing.T) {
+	// Setup
+	mockRepo := mocks.NewMockUserRepository()
+	registerUC := &usecase.RegisterUsecase{
+		UserRepo:                  mockRepo,
+		RequireRoleOnRegistration: true,
+	}
+
+	// Test registration with valid role
+	err := registerUC.Register("newuser@example.com", "password123", "customer")
+
+	// Assert
+	if err != nil {
+		t.Errorf("Expected no error with valid role, but got: %s", err.Error())
+	}
+
+	// Verify user was created
+	user, err := mockRepo.FindByEmail("newuser@example.com")
+	if err != nil {
+		t.Errorf("Expected to find new user, but got error: %s", err.Error())
+	}
+	if user.Email != "newuser@example.com" {
+		t.Errorf("Expected email 'newuser@example.com', but got '%s'", user.Email)
+	}
+}
+
+func TestRegisterUsecase_RoleAssignmentWhenFeatureDisabled(t *testing.T) {
+	// Setup
+	mockRepo := mocks.NewMockUserRepository()
+	registerUC := &usecase.RegisterUsecase{
+		UserRepo:                  mockRepo,
+		RequireRoleOnRegistration: false,
+	}
+
+	// Test registration with role (should succeed and assign role)
+	err := registerUC.Register("newuser@example.com", "password123", "customer")
+
+	// Assert
+	if err != nil {
+		t.Errorf("Expected no error when feature disabled, but got: %s", err.Error())
+	}
+
+	// Verify user was created
+	user, err := mockRepo.FindByEmail("newuser@example.com")
+	if err != nil {
+		t.Errorf("Expected to find new user, but got error: %s", err.Error())
+	}
+	if user.Email != "newuser@example.com" {
+		t.Errorf("Expected email 'newuser@example.com', but got '%s'", user.Email)
 	}
 }
