@@ -12,13 +12,18 @@ type ServerConfig struct {
 	Port string
 }
 
+type DatabaseConfig struct {
+	URL string
+}
+
 type RedisConfig struct {
 	URL string
 }
 
 type Config struct {
-	Server ServerConfig
-	Redis  RedisConfig
+	Server   ServerConfig
+	Database DatabaseConfig
+	Redis    RedisConfig
 }
 
 var AppConfig *Config
@@ -40,6 +45,9 @@ func LoadConfig() *Config {
 		Server: ServerConfig{
 			Host: getEnv("Server__Host", "0.0.0.0"),
 			Port: getEnv("Server__Port", "8080"),
+		},
+		Database: DatabaseConfig{
+			URL: getEnv("DATABASE_URL", "postgres://user:password@localhost:5432/ride_sharing_db?sslmode=disable"),
 		},
 		Redis: RedisConfig{
 			URL: getEnv("Redis__URL", "redis://0.0.0.0:6379"),
