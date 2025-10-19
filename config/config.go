@@ -20,10 +20,15 @@ type RedisConfig struct {
 	URL string
 }
 
+type FeatureFlags struct {
+	RequireRoleOnRegistration bool
+}
+
 type Config struct {
-	Server   ServerConfig
-	Database DatabaseConfig
-	Redis    RedisConfig
+	Server       ServerConfig
+	Database     DatabaseConfig
+	Redis        RedisConfig
+	FeatureFlags FeatureFlags
 }
 
 var AppConfig *Config
@@ -51,6 +56,9 @@ func LoadConfig() *Config {
 		},
 		Redis: RedisConfig{
 			URL: getEnv("Redis__URL", "redis://0.0.0.0:6379"),
+		},
+		FeatureFlags: FeatureFlags{
+			RequireRoleOnRegistration: getEnv("REQUIRE_ROLE_ON_REGISTRATION", "true") == "true",
 		},
 	}
 }
