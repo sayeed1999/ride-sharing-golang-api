@@ -1,0 +1,13 @@
+package trip_request
+
+type TripRequestStatus int
+
+const (
+	NO_DRIVER_FOUND TripRequestStatus = iota + 1
+	CUSTOMER_CANCELED
+	DRIVER_ACCEPTED
+	CUSTOMER_REJECTED_DRIVER
+	DRIVER_REJECTED_CUSTOMER
+	TRIP_STARTED
+	TRIP_REQUEST_REJECTED
+)
