@@ -3,11 +3,11 @@ package usecase
 import (
 	"errors"
 
-	"github.com/sayeed1999/ride-sharing-golang-api/internal/app/auth/repository/postgres"
+	"github.com/sayeed1999/ride-sharing-golang-api/internal/app/auth/repository"
 )
 
 type LoginUsecase struct {
-	UserRepo *postgres.UserRepo
+	UserRepo repository.UserRepository
 }
 
 func (uc *LoginUsecase) Login(email, password string) error {

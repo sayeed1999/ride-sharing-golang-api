@@ -4,11 +4,11 @@ import (
 	"errors"
 
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/app/auth/domain"
-	"github.com/sayeed1999/ride-sharing-golang-api/internal/app/auth/repository/postgres"
+	"github.com/sayeed1999/ride-sharing-golang-api/internal/app/auth/repository"
 )
 
 type RegisterUsecase struct {
-	UserRepo *postgres.UserRepo
+	UserRepo repository.UserRepository
 }
 
 func (uc *RegisterUsecase) Register(email, password, role string) error {
