@@ -14,32 +14,27 @@ ride-sharing-api/
 │   │
 │   ├── app/                           # Application modules (each = potential microservice)
 │   │   │
-│   │   ├── auth/                      # AUTH MODULE (Generic, reusable)
+│   │   ├── auth/                      # AUTH MODULE
 │   │   │   ├── domain/
 │   │   │   │   ├── user.go
 │   │   │   │   ├── role.go
-│   │   │   │   ├── user_role.go
-│   │   │   │   └── errors.go
+│   │   │   │   └── user_role.go
 │   │   │   ├── repository/
-│   │   │   │   ├── repository.go      # Interface
+│   │   │   │   ├── repository.go      # Interface: UserRepository
+│   │   │   │   ├── mocks/              # Test mocks for unit tests
+│   │   │   │   │   └── user_repo_mock.go
 │   │   │   │   └── postgres/
-│   │   │   │       ├── user_repo.go
-│   │   │   │       └── role_repo.go
-│   │   │   ├── service/
-│   │   │   │   └── auth_service.go    # PUBLIC API (exposed to other modules)
+│   │   │   │       └── user_repo.go    # GORM-based implementation
 │   │   │   ├── usecase/               # Business logic
-│   │   │   │   ├── register.go
-│   │   │   │   ├── login.go
-│   │   │   │   ├── assign_role.go
-│   │   │   │   └── verify_token.go
+│   │   │   │   ├── register.go        # Registration flow (salt+hash, role assign)
+│   │   │   │   ├── login.go           # Login flow (password verify)
+│   │   │   │   └── password.go        # Password helpers: salt, hash, verify
 │   │   │   ├── handler/
-│   │   │   │   ├── http/
-│   │   │   │   │   ├── handler.go     # HTTP handlers
-│   │   │   │   │   ├── routes.go
-│   │   │   │   │   └── dto.go
-│   │   │   │   └── grpc/              # Future: gRPC interface
-│   │   │   │       └── auth.proto
-│   │   │   └── module.go              # Module initialization
+│   │   │   │   └── http/
+│   │   │   │       ├── handler.go     # HTTP handlers for register/login
+│   │   │   │       ├── routes.go      # Route registration
+│   │   │   │       └── dto.go         # Request/response DTOs and validation tags
+│   │   │   └── module.go              # Module initialization (wires repos/usecases/handlers)
 │   │   │
 │   │   ├── rider/                     # RIDER MODULE (Customer operations + Trip requests)
 │   │   │   ├── domain/

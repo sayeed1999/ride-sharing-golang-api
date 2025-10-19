@@ -8,8 +8,8 @@ The main app **Ride-Sharing-Platform**, which is built with **.NET**, uses this 
 
 - [BRD - Business Requirement Document](./docs/BRD.md)
 - [PRD - Product Requirement Document](./docs/PRD.md)
-- [SDD - Software Design Document](./docs/SDD.md)
-- [TDD - Technical Design Document](./docs/TDD.md)
+- [Design Decisions](./docs/DESIGN_DECISIONS.md)
+- [Project Structure](./docs/PROJECT_STRUCTURE.md)
 
 # Project Deployment Guide
 
