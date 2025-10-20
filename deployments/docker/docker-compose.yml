@@ -3,18 +3,20 @@ version: '3.8'
 services:
   db:
     image: postgres:18-alpine
+    container_name: postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: ride_sharing_db
+      POSTGRES_USER: "${POSTGRES_USER}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+      POSTGRES_DB: "${POSTGRES_DB}"
     volumes:
       - db_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT}:5432"
 
   pgadmin:
     image: dpage/pgadmin4:7
+    container_name: pgadmin
     restart: unless-stopped
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@local
@@ -27,11 +29,16 @@ services:
       context: ../../
       dockerfile: deployments/docker/Dockerfile
     image: ride-sharing-core-api:latest
+    container_name: ride_sharing_core_api
     depends_on:
       - db
     environment:
-      # Application config expects DATABASE_URL env var
-      DATABASE_URL: "postgres://user:password@db:5432/ride_sharing_db?sslmode=disable"
+      # Provide individual POSTGRES_* values — database.go will build DSN from config
+      POSTGRES_USER: "${POSTGRES_USER:-user}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-password}"
+      POSTGRES_DB: "${POSTGRES_DB:-ride_sharing_db}"
+      POSTGRES_HOST: "db"
+      POSTGRES_PORT: "5432"
       # Server binding
       Server__Host: "0.0.0.0"
       Server__Port: "8080"
