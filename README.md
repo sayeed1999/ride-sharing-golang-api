@@ -44,7 +44,7 @@ docker build -t ride-sharing-golang-api -f deployments/docker/Dockerfile .
 To manually run a container for this image, run for terminal: -
 
 ```bash
-docker run --rm -it -p 7000:8080 ride-processing-service
+docker run --rm -it -p 8080:8080 ride-sharing-golang-api
 ```
 
 The api will be running on `localhost:7000`.
@@ -53,10 +53,10 @@ The api will be running on `localhost:7000`.
 
 To run through Docker Compose file, run from terminal: -
 ```
-docker-compose up -d
+docker compose -f deployments/docker/docker-compose.yml up -d
 ```
 
 To stop the running containers, run: -
 ```
-docker-compose down
+docker-compose -f deployments/docker/docker-compose.yml down
 ```
