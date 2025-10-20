@@ -17,8 +17,8 @@ services:
     container_name: pgadmin
     restart: unless-stopped
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@local
-      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_DEFAULT_EMAIL: "${PGADMIN_EMAIL}"
+      PGADMIN_DEFAULT_PASSWORD: "${PGADMIN_PASSWORD}"
     ports:
       - "8081:80"
 
@@ -32,16 +32,16 @@ services:
       - db
     environment:
       # Provide individual POSTGRES_* values — database.go will build DSN from config
-      POSTGRES_USER: "${POSTGRES_USER:-user}"
-      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-password}"
-      POSTGRES_DB: "${POSTGRES_DB:-ride_sharing_db}"
-      POSTGRES_HOST: "db"
-      POSTGRES_PORT: "5432"
+      POSTGRES_USER: "${POSTGRES_USER}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+      POSTGRES_DB: "${POSTGRES_DB}"
+      POSTGRES_HOST: "${POSTGRES_HOST}"
+      POSTGRES_PORT: "${POSTGRES_PORT}"
       # Server binding
-      Server__Host: "0.0.0.0"
-      Server__Port: "8080"
+      Server__Host: "${Server__Host}"
+      Server__Port: "${Server__Port}"
       # Feature flags
-      REQUIRE_ROLE_ON_REGISTRATION: "true"
+      REQUIRE_ROLE_ON_REGISTRATION: "${REQUIRE_ROLE_ON_REGISTRATION}"
     ports:
       - "8080:8080"
     restart: on-failure

@@ -17,8 +17,19 @@ The main app **Ride-Sharing-Platform**, which is built with **.NET**, uses this 
 
 To set the env's properly, run from bash terminal: -
 ```
-export RideProcessingService__Server__Port=8080
-export RideProcessingService__Server__Host=0.0.0.0
+export Server__Host=0.0.0.0
+export Server__Port=8080
+
+export POSTGRES_USER=user
+export POSTGRES_PASSWORD=password
+export POSTGRES_HOST=0.0.0.0
+export POSTGRES_PORT=5432
+export POSTGRES_DB=ride_sharing_db
+
+export PGADMIN_PASSWORD=admin
+export PGADMIN_EMAIL=admin@local.com
+
+export REQUIRE_ROLE_ON_REGISTRATION=true
 ```
 
 [**Note:** While not running with **docker compose**, omit the first part **RideProcessingService__**.
@@ -47,7 +58,7 @@ To manually run a container for this image, run for terminal: -
 docker run --rm -it -p 8080:8080 ride-sharing-golang-api
 ```
 
-The api will be running on `localhost:7000`.
+The api will be running on `localhost:8080`.
 
 ## Launch Container using Docker Compose
 
