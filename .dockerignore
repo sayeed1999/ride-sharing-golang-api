@@ -1,0 +1,34 @@
+# Docker ignore file — placed at repository root because the build context is the repo root.
+# If you build with a different context (for example: `docker build -f deployments/docker/Dockerfile deployments/docker`),
+# place a .dockerignore inside that build-context directory instead.
+
+# VCS
+.git
+.gitignore
+.gitattributes
+
+# Editor / OS files
+.DS_Store
+.vscode/
+.idea/
+*.swp
+
+# Local environment files
+.env
+.env.local
+.env.*.local
+
+# Build artifacts and node deps
+node_modules/
+dist/
+build/
+bin/
+
+# Go vendor (if present)
+vendor/
+
+# Tests and CI artifacts (remove if you want tests in the image context)
+tests/
+tests/**
+
+# Dockerfile and compose folder should remain available in context (do not ignore deployments/docker/)

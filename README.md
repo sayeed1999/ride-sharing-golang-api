@@ -34,14 +34,16 @@ The api will be running on `localhost:8080`.
 ## Build Docker Image
 
 To manually build the Docker image, run from terminal: -
-```
-docker build -t ride-processing-service .
+
+```bash
+docker build -t ride-sharing-golang-api -f deployments/docker/Dockerfile .
 ```
 
 ## Launch Container using Dockerfile
 
 To manually run a container for this image, run for terminal: -
-```
+
+```bash
 docker run --rm -it -p 7000:8080 ride-processing-service
 ```
 
