@@ -32,6 +32,15 @@ export PGADMIN_EMAIL=admin@local.com
 export REQUIRE_ROLE_ON_REGISTRATION=true
 ```
 
+Alternatively, you can run the following from bash:
+
+```bash
+chmod +x scripts/setenv.sh
+. ./scripts/setenv.sh
+```
+
+What this does - first line changes the file’s permissions to allow it to be run directly like a program. second line runs the script in your current shell. thus keeps exported environment variables active.
+
 [**Note:** While not running with **docker compose**, omit the first part **RideProcessingService__**.
 While running docker compose, docker will omit the prefix **RideProcessingService__** for you.]
 
