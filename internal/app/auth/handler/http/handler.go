@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/app/auth/usecase"
+	jwtpkg "github.com/sayeed1999/ride-sharing-golang-api/pkg/jwt"
 
 	"github.com/gin-gonic/gin"
 )
@@ -11,10 +12,11 @@ import (
 type AuthHandler struct {
 	RegisterUC *usecase.RegisterUsecase
 	LoginUC    *usecase.LoginUsecase
+	JWTService *jwtpkg.Service
 }
 
-func NewAuthHandler(registerUC *usecase.RegisterUsecase, loginUC *usecase.LoginUsecase) *AuthHandler {
-	return &AuthHandler{registerUC, loginUC}
+func NewAuthHandler(registerUC *usecase.RegisterUsecase, loginUC *usecase.LoginUsecase, jwtService *jwtpkg.Service) *AuthHandler {
+	return &AuthHandler{registerUC, loginUC, jwtService}
 }
 
 func (h *AuthHandler) Register(c *gin.Context) {
@@ -44,5 +46,17 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "login successful"})
+	// generate JWT via injected JWT service
+	if h.JWTService == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "jwt service not configured"})
+		return
+	}
+
+	token, err := h.JWTService.GenerateToken(req.Email)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate token"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"token": token})
 }

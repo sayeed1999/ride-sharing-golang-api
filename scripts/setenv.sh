@@ -11,3 +11,6 @@ export PGADMIN_PASSWORD=admin
 export PGADMIN_EMAIL=admin@local.com
 
 export REQUIRE_ROLE_ON_REGISTRATION=true
+
+# JWT secret used to sign access tokens in local dev. Replace in production.
+export JWT_SECRET=dev_jwt_secret_change_me

@@ -62,6 +62,9 @@ func buildConfig(t testing.TB, dbConfig config.DatabaseConfig, requireRoleOnRegi
 		FeatureFlags: config.FeatureFlags{
 			RequireRoleOnRegistration: requireRoleOnRegistration,
 		},
+		Auth: config.AuthConfig{
+			JWTSecret: "test_jwt_secret_change_me",
+		},
 	}
 }
 

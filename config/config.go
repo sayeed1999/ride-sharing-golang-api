@@ -28,11 +28,17 @@ type FeatureFlags struct {
 	RequireRoleOnRegistration bool
 }
 
+type AuthConfig struct {
+	// JWTSecret used to sign access tokens in tests and local dev. Override in production.
+	JWTSecret string
+}
+
 type Config struct {
 	Server       ServerConfig
 	Database     DatabaseConfig
 	Redis        RedisConfig
 	FeatureFlags FeatureFlags
+	Auth         AuthConfig
 }
 
 var AppConfig *Config
@@ -67,6 +73,9 @@ func LoadConfig() *Config {
 		},
 		FeatureFlags: FeatureFlags{
 			RequireRoleOnRegistration: getEnv("REQUIRE_ROLE_ON_REGISTRATION", "true") == "true",
+		},
+		Auth: AuthConfig{
+			JWTSecret: getEnv("JWT_SECRET", "dev_jwt_secret_change_me"),
 		},
 	}
 }

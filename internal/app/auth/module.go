@@ -1,11 +1,14 @@
 package auth
 
 import (
+	"time"
+
 	"github.com/sayeed1999/ride-sharing-golang-api/config"
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/app/auth/handler/http"
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/app/auth/repository"
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/app/auth/repository/postgres"
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/app/auth/usecase"
+	jwtpkg "github.com/sayeed1999/ride-sharing-golang-api/pkg/jwt"
 
 	"github.com/gin-gonic/gin"
 
@@ -25,6 +28,9 @@ func ExposeRoutes(rg *gin.RouterGroup, db *gorm.DB, cfg *config.Config) {
 	}
 	loginUC := &usecase.LoginUsecase{UserRepo: userRepo}
 
-	// Register HTTP routes
-	http.RegisterRoutes(rg, registerUC, loginUC)
+	// JWT service (injected)
+	jwtService := jwtpkg.New(cfg.Auth.JWTSecret, 24*time.Hour)
+
+	// Register HTTP routes (pass jwt service)
+	http.RegisterRoutes(rg, registerUC, loginUC, jwtService)
 }
