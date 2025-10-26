@@ -15,8 +15,9 @@ A compact, pluggable auth module (domain → repository → usecase → handler)
 
 Keep the flag in `config.Config` (env toggle) so host projects can change behavior without forking.
 
+## E2E Tests
 
-## Facade Design Pattern in E2E Tests
+### Facade Design Pattern
 
 In E2E testing, the setup process contains a series of tasks:
 1. Spin up a real docker container
