@@ -8,30 +8,28 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/sayeed1999/ride-sharing-golang-api/tests/e2e/setup"
 	"github.com/stretchr/testify/require"
 )
 
 func TestRegisterAndLogin_E2E(t *testing.T) {
 	ctx := context.Background()
-	pgC, dbConfig := setupContainer(ctx, t)
-	defer pgC.Terminate(ctx)
-	cfg := buildConfig(t, dbConfig, false)
-	db := setupTestDB(t, cfg)
-	router := setupRouter(t, db, cfg)
+	testApp := setup.NewTestApp(ctx, t)
+	defer testApp.CleanUp(ctx, t)
 
 	// Register user
 	regPayload := map[string]string{"email": "e2e-user@example.com", "password": "pass123", "role": ""}
-	w := doJSONRequest(t, router, http.MethodPost, "/register", regPayload)
+	w := doJSONRequest(t, testApp.Router(), http.MethodPost, "/register", regPayload)
 	assertAndLogErrors(t, w, http.StatusCreated)
 
 	// Login with wrong password (should fail)
 	badLogin := map[string]string{"email": "e2e-user@example.com", "password": "wrong"}
-	w = doJSONRequest(t, router, http.MethodPost, "/login", badLogin)
+	w = doJSONRequest(t, testApp.Router(), http.MethodPost, "/login", badLogin)
 	assertAndLogErrors(t, w, http.StatusUnauthorized)
 
 	// Login with correct password (last)
 	loginPayload := map[string]string{"email": "e2e-user@example.com", "password": "pass123"}
-	w = doJSONRequest(t, router, http.MethodPost, "/login", loginPayload)
+	w = doJSONRequest(t, testApp.Router(), http.MethodPost, "/login", loginPayload)
 	assertAndLogErrors(t, w, http.StatusOK)
 }
 
