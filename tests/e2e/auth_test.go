@@ -27,16 +27,25 @@ func TestRegisterAndLogin_E2E(t *testing.T) {
 	// Register user
 	regPayload := map[string]string{"email": "e2e-user@example.com", "password": "pass123", "role": ""}
 	w := doJSONRequest(t, router, http.MethodPost, "/register", regPayload)
+	if w.Code != http.StatusCreated {
+		t.Logf("Unexpected status code: %d\nBody: %s", w.Code, w.Body.String())
+	}
 	require.Equal(t, http.StatusCreated, w.Code)
 
 	// Login with wrong password (should fail)
 	badLogin := map[string]string{"email": "e2e-user@example.com", "password": "wrong"}
 	w = doJSONRequest(t, router, http.MethodPost, "/login", badLogin)
+	if w.Code != http.StatusCreated {
+		t.Logf("Unexpected status code: %d\nBody: %s", w.Code, w.Body.String())
+	}
 	require.Equal(t, http.StatusUnauthorized, w.Code)
 
 	// Login with correct password (last)
 	loginPayload := map[string]string{"email": "e2e-user@example.com", "password": "pass123"}
 	w = doJSONRequest(t, router, http.MethodPost, "/login", loginPayload)
+	if w.Code != http.StatusCreated {
+		t.Logf("Unexpected status code: %d\nBody: %s", w.Code, w.Body.String())
+	}
 	require.Equal(t, http.StatusOK, w.Code)
 }
 

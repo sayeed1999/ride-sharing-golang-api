@@ -21,7 +21,7 @@ func setupContainer(ctx context.Context, t *testing.T) (tc.Container, *config.Co
 		Env: map[string]string{
 			"POSTGRES_USER":     "testuser",
 			"POSTGRES_PASSWORD": "testpass",
-			"POSTGRES_DB":       "testdb",
+			"POSTGRES_DB":       "ridesharing_testdb",
 		},
 		WaitingFor: wait.ForListeningPort("5432/tcp").WithStartupTimeout(60 * time.Second),
 	}
@@ -35,13 +35,13 @@ func setupContainer(ctx context.Context, t *testing.T) (tc.Container, *config.Co
 	require.NoError(t, err)
 
 	cfg := &config.Config{
-		Server: config.ServerConfig{Host: "0.0.0.0", Port: "0"},
+		Server: config.ServerConfig{Host: "0.0.0.0", Port: "7000"},
 		Database: config.DatabaseConfig{
 			User:     "testuser",
 			Password: "testpass",
 			Host:     host,
 			Port:     mappedPort.Port(),
-			DB:       "testdb",
+			DB:       "ridesharing_testdb",
 		},
 		FeatureFlags: config.FeatureFlags{RequireRoleOnRegistration: false},
 	}

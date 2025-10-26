@@ -14,9 +14,11 @@ type RegisterUsecase struct {
 }
 
 func (uc *RegisterUsecase) Register(email, password, role string) error {
+	role = strings.TrimSpace(role)
+
 	// Validate role requirement if feature flag is enabled
 	if uc.RequireRoleOnRegistration {
-		if strings.TrimSpace(role) == "" {
+		if role == "" {
 			return errors.New("role is required for registration")
 		}
 	}
@@ -49,7 +51,7 @@ func (uc *RegisterUsecase) Register(email, password, role string) error {
 	}
 
 	// Assign role if provided (regardless of feature flag)
-	if strings.TrimSpace(role) != "" {
+	if role != "" {
 		if _, err := uc.UserRepo.AssignRole(newUser.ID, role); err != nil {
 			return err
 		}
