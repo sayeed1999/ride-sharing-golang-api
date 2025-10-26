@@ -65,6 +65,16 @@ func doJSONRequest(t testing.TB, handler http.Handler, method, path string, payl
 	return w
 }
 
+// extractTokenFromResponse unmarshals the JSON response body and returns the "token" field.
+func extractTokenFromResponse(t testing.TB, w *httptest.ResponseRecorder) string {
+	t.Helper()
+	var resp map[string]string
+	require.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
+	tokenStr, ok := resp["token"]
+	require.True(t, ok, "token not found in response")
+	return tokenStr
+}
+
 // assertValidJWT is a small helper that parses and validates a JWT token string
 // using the provided HMAC secret and asserts the subject claim equals expectedSub.
 func assertValidJWT(t testing.TB, tokenStr, secret, expectedSub string) {
@@ -81,14 +91,4 @@ func assertValidJWT(t testing.TB, tokenStr, secret, expectedSub string) {
 	claims, ok := parsed.Claims.(jwt.MapClaims)
 	require.True(t, ok, "unexpected claims type")
 	require.Equal(t, expectedSub, claims["sub"])
-}
-
-// extractTokenFromResponse unmarshals the JSON response body and returns the "token" field.
-func extractTokenFromResponse(t testing.TB, w *httptest.ResponseRecorder) string {
-	t.Helper()
-	var resp map[string]string
-	require.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
-	tokenStr, ok := resp["token"]
-	require.True(t, ok, "token not found in response")
-	return tokenStr
 }
