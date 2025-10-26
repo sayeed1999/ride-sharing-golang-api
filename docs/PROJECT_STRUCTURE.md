@@ -334,15 +334,17 @@ ride-sharing-api/
 └── README.md
 ```
 
-# KEY ARCHITECTURAL DECISIONS:
+## KEY ARCHITECTURAL DECISIONS
 
 ## 1. Trip Data Ownership
+
 - **Rider Service**: Owns rider perspective of trips (trip requests, cancellations, history)
 - **Driver Service**: Owns driver perspective of trips (assignments, acceptances, completions)
 - **Trip-Processing Service**: Owns core trip state and orchestration logic
 
 ## 2. Communication Flow
-```
+
+```noset
 Rider requests ride → TripRequested event → Trip-Processing
 Trip-Processing matches driver → MatchFound event → Driver Service
 Driver accepts → TripAccepted event → Trip-Processing → Update Rider
@@ -351,13 +353,16 @@ Driver completes → TripCompleted event → Trip-Processing → Update both
 ```
 
 ## 3. No Direct Calls
+
 - Rider service NEVER calls driver service directly
 - Driver service NEVER calls rider service directly
 - Trip-processing service has NO HTTP endpoints
 - All coordination happens through events
 
 ## 4. Future Microservice Split
+
 When splitting into microservices:
+
 - Each service becomes independent deployment
 - Event bus becomes Kafka/RabbitMQ
 - Each service has its own database

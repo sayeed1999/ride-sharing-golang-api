@@ -12,12 +12,13 @@ The main app **Ride-Sharing-Platform**, which is built with **.NET**, uses this 
 - [Design Decisions](./docs/DESIGN_DECISIONS.md)
 - [Testing](./docs/TESTING.md)
 
-# Project Deployment Guide
+## Project Deployment Guide
 
 ## Set environment variables
 
 To set the env's properly, run from bash terminal: -
-```
+
+```noset
 export Server__Host=0.0.0.0
 export Server__Port=8080
 
@@ -73,11 +74,13 @@ The api will be running on `localhost:8080`.
 ## Launch Container using Docker Compose
 
 To run through Docker Compose file, run from terminal: -
-```
+
+```noset
 docker compose -f deployments/docker/docker-compose.yml up -d
 ```
 
 To stop the running containers, run: -
-```
+
+```noset
 docker-compose -f deployments/docker/docker-compose.yml down
 ```
