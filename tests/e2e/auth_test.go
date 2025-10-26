@@ -7,51 +7,48 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/require"
 )
 
 func TestRegisterAndLogin_E2E(t *testing.T) {
 	ctx := context.Background()
-	pgC, cfg := setupContainer(ctx, t)
-	defer func() {
-		_ = pgC.Terminate(ctx)
-	}()
-
-	// allow a short buffer for DB to be fully ready
-	time.Sleep(1 * time.Second)
-
-	router := setupRouterWithDB(t, cfg)
+	pgC, dbConfig := setupContainer(ctx, t)
+	defer pgC.Terminate(ctx)
+	cfg := buildConfig(t, dbConfig, false)
+	db := setupTestDB(t, cfg)
+	router := setupRouter(t, db, cfg)
 
 	// Register user
 	regPayload := map[string]string{"email": "e2e-user@example.com", "password": "pass123", "role": ""}
 	w := doJSONRequest(t, router, http.MethodPost, "/register", regPayload)
-	if w.Code != http.StatusCreated {
-		t.Logf("Unexpected status code: %d\nBody: %s", w.Code, w.Body.String())
-	}
-	require.Equal(t, http.StatusCreated, w.Code)
+	assertAndLogErrors(t, w, http.StatusCreated)
 
 	// Login with wrong password (should fail)
 	badLogin := map[string]string{"email": "e2e-user@example.com", "password": "wrong"}
 	w = doJSONRequest(t, router, http.MethodPost, "/login", badLogin)
-	if w.Code != http.StatusCreated {
-		t.Logf("Unexpected status code: %d\nBody: %s", w.Code, w.Body.String())
-	}
-	require.Equal(t, http.StatusUnauthorized, w.Code)
+	assertAndLogErrors(t, w, http.StatusUnauthorized)
 
 	// Login with correct password (last)
 	loginPayload := map[string]string{"email": "e2e-user@example.com", "password": "pass123"}
 	w = doJSONRequest(t, router, http.MethodPost, "/login", loginPayload)
-	if w.Code != http.StatusCreated {
+	assertAndLogErrors(t, w, http.StatusOK)
+}
+
+func assertAndLogErrors(t testing.TB, w *httptest.ResponseRecorder, expectedHttpStatus int) {
+	t.Helper() // marks this function as a test helper
+
+	if w.Code != expectedHttpStatus {
 		t.Logf("Unexpected status code: %d\nBody: %s", w.Code, w.Body.String())
 	}
-	require.Equal(t, http.StatusOK, w.Code)
+
+	require.Equal(t, expectedHttpStatus, w.Code)
 }
 
 // doJSONRequest is a small helper to marshal payload and perform an HTTP request
-func doJSONRequest(t *testing.T, handler http.Handler, method, path string, payload interface{}) *httptest.ResponseRecorder {
-	t.Helper()
+func doJSONRequest(t testing.TB, handler http.Handler, method, path string, payload interface{}) *httptest.ResponseRecorder {
+	t.Helper() // marks this function as a test helper
+
 	body, err := json.Marshal(payload)
 	require.NoError(t, err)
 

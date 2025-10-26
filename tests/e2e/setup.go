@@ -12,9 +12,12 @@ import (
 	"github.com/stretchr/testify/require"
 	tc "github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
+	"gorm.io/gorm"
 )
 
-func setupContainer(ctx context.Context, t *testing.T) (tc.Container, *config.Config) {
+func setupContainer(ctx context.Context, t testing.TB) (tc.Container, config.DatabaseConfig) {
+	t.Helper() // marks this function as a test helper
+
 	req := tc.ContainerRequest{
 		Image:        "postgres:18-alpine",
 		ExposedPorts: []string{"5432/tcp"},
@@ -34,27 +37,48 @@ func setupContainer(ctx context.Context, t *testing.T) (tc.Container, *config.Co
 	mappedPort, err := pgC.MappedPort(ctx, "5432")
 	require.NoError(t, err)
 
-	cfg := &config.Config{
-		Server: config.ServerConfig{Host: "0.0.0.0", Port: "7000"},
-		Database: config.DatabaseConfig{
-			User:     "testuser",
-			Password: "testpass",
-			Host:     host,
-			Port:     mappedPort.Port(),
-			DB:       "ridesharing_testdb",
-		},
-		FeatureFlags: config.FeatureFlags{RequireRoleOnRegistration: false},
+	dbConfig := config.DatabaseConfig{
+		Host:     host,
+		Port:     mappedPort.Port(),
+		User:     "testuser",
+		Password: "testpass",
+		DB:       "ridesharing_testdb",
 	}
 
-	return pgC, cfg
+	// allow a short buffer for DB to be fully ready
+	time.Sleep(1 * time.Second)
+	return pgC, dbConfig
 }
 
-func setupRouterWithDB(t *testing.T, cfg *config.Config) *gin.Engine {
+func buildConfig(t testing.TB, dbConfig config.DatabaseConfig, requireRoleOnRegistration bool) *config.Config {
+	t.Helper() // marks this function as a test helper
+
+	return &config.Config{
+		Server: config.ServerConfig{
+			Host: "0.0.0.0",
+			Port: "7000",
+		},
+		Database: dbConfig,
+		FeatureFlags: config.FeatureFlags{
+			RequireRoleOnRegistration: requireRoleOnRegistration,
+		},
+	}
+}
+
+func setupTestDB(t testing.TB, cfg *config.Config) *gorm.DB {
+	t.Helper() // marks this function as a test helper
+
 	db, err := database.InitDB(cfg)
 	require.NoError(t, err)
 
 	// run migrations
 	require.NoError(t, database.AutoMigrate(db))
+
+	return db
+}
+
+func setupRouter(t testing.TB, db *gorm.DB, cfg *config.Config) *gin.Engine {
+	t.Helper() // marks this function as a test helper
 
 	gin.SetMode(gin.TestMode)
 	r := gin.New()
