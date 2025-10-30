@@ -1,15 +1,11 @@
 package http
 
-import (
-	"github.com/sayeed1999/ride-sharing-golang-api/internal/app/auth/usecase"
-	jwtpkg "github.com/sayeed1999/ride-sharing-golang-api/pkg/jwt"
+import "github.com/gin-gonic/gin"
 
-	"github.com/gin-gonic/gin"
-)
-
-func RegisterRoutes(rg *gin.RouterGroup, registerUC *usecase.RegisterUsecase, loginUC *usecase.LoginUsecase, jwtService *jwtpkg.Service) {
-	authHandler := NewAuthHandler(registerUC, loginUC, jwtService)
-
-	rg.POST("/register", authHandler.Register)
-	rg.POST("/login", authHandler.Login)
+// RegisterRoutes registers routes for an existing AuthHandler instance.
+// The handler should be constructed by the module wiring layer (module.go)
+// after repositories and usecases have been created.
+func RegisterRoutes(rg *gin.RouterGroup, h *AuthHandler) {
+	rg.POST("/register", h.Register)
+	rg.POST("/login", h.Login)
 }

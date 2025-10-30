@@ -1,11 +1,10 @@
 package http
 
-import (
-	"github.com/gin-gonic/gin"
-	"github.com/sayeed1999/ride-sharing-golang-api/internal/app/trip/usecase"
-)
+import "github.com/gin-gonic/gin"
 
-func RegisterRoutes(rg *gin.RouterGroup, signupUC *usecase.SignupUsecase) {
-	h := NewCustomerHandler(signupUC)
+// RegisterRoutes registers routes for a preconstructed CustomerHandler.
+// The handler should be created by module wiring after repositories and
+// usecases are available.
+func RegisterRoutes(rg *gin.RouterGroup, h *CustomerHandler) {
 	rg.POST("/signup", h.CustomerSignup)
 }

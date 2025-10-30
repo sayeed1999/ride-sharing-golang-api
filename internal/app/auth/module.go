@@ -31,8 +31,9 @@ func ExposeRoutes(rg *gin.RouterGroup, db *gorm.DB, cfg *config.Config) {
 	// JWT service (injected)
 	jwtService := jwtpkg.New(cfg.Auth.JWTSecret, 24*time.Hour)
 
-	// Register HTTP routes (pass jwt service)
-	http.RegisterRoutes(rg, registerUC, loginUC, jwtService)
+	authHandler := http.NewAuthHandler(registerUC, loginUC, jwtService)
+
+	http.RegisterRoutes(rg, authHandler)
 }
 
 // NewRegisterUsecase builds and returns a RegisterUsecase instance backed by the

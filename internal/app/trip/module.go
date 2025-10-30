@@ -28,7 +28,8 @@ func ExposeRoutes(rg *gin.RouterGroup, db *gorm.DB, cfg *config.Config) {
 		AuthRegister: registerUC,
 	}
 
-	// Register routes under /customers
+	custHandler := triphttp.NewCustomerHandler(signupUC)
+
 	customers := rg.Group("/customers")
-	triphttp.RegisterRoutes(customers, signupUC)
+	triphttp.RegisterRoutes(customers, custHandler)
 }
