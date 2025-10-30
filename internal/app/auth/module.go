@@ -34,3 +34,18 @@ func ExposeRoutes(rg *gin.RouterGroup, db *gorm.DB, cfg *config.Config) {
 	// Register HTTP routes (pass jwt service)
 	http.RegisterRoutes(rg, registerUC, loginUC, jwtService)
 }
+
+// NewRegisterUsecase builds and returns a RegisterUsecase instance backed by the
+// provided DB and configuration. Other modules can call this to obtain an
+// instance without reaching into auth internals.
+func NewRegisterUsecase(db *gorm.DB, cfg *config.Config) *usecase.RegisterUsecase {
+	postgresRepo := &postgres.UserRepo{DB: db}
+	var userRepo repository.UserRepository = postgresRepo
+
+	registerUC := &usecase.RegisterUsecase{
+		UserRepo:                  userRepo,
+		RequireRoleOnRegistration: cfg.FeatureFlags.RequireRoleOnRegistration,
+	}
+
+	return registerUC
+}

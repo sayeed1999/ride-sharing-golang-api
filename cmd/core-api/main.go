@@ -6,6 +6,7 @@ import (
 	"github.com/sayeed1999/ride-sharing-golang-api/config"
 	"github.com/sayeed1999/ride-sharing-golang-api/database"
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/app/auth"
+	"github.com/sayeed1999/ride-sharing-golang-api/internal/app/trip"
 
 	"github.com/gin-gonic/gin"
 )
@@ -34,6 +35,10 @@ func main() {
 		// Auth routes under /api/auth/
 		authGroup := api.Group("/auth")
 		auth.ExposeRoutes(authGroup, db, cfg)
+
+		// Trip routes under /api/trip/
+		tripGroup := api.Group("/trip")
+		trip.ExposeRoutes(tripGroup, db, cfg)
 	}
 
 	// Start server

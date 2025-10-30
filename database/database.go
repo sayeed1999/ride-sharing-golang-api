@@ -5,7 +5,8 @@ import (
 	"log"
 
 	"github.com/sayeed1999/ride-sharing-golang-api/config"
-	"github.com/sayeed1999/ride-sharing-golang-api/internal/app/auth/domain"
+	authdomain "github.com/sayeed1999/ride-sharing-golang-api/internal/app/auth/domain"
+	tripdomain "github.com/sayeed1999/ride-sharing-golang-api/internal/app/trip/domain"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -36,15 +37,21 @@ func InitDBWithErrorHandling(cfg *config.Config) *gorm.DB {
 func AutoMigrate(db *gorm.DB) error {
 	log.Println("Running database migrations...")
 
-	// Ensure auth schema exists before migrating auth tables.
+	// Ensure auth and trip schemas exist before migrating tables.
 	if err := db.Exec("CREATE SCHEMA IF NOT EXISTS auth").Error; err != nil {
+		return err
+	}
+	if err := db.Exec("CREATE SCHEMA IF NOT EXISTS trip").Error; err != nil {
 		return err
 	}
 
 	err := db.AutoMigrate(
-		&domain.User{},
-		&domain.Role{},
-		&domain.UserRole{},
+		// auth module
+		&authdomain.User{},
+		&authdomain.Role{},
+		&authdomain.UserRole{},
+		// trip module
+		&tripdomain.Customer{},
 	)
 
 	if err != nil {
