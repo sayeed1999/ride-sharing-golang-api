@@ -5,7 +5,7 @@ import (
 
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/app/auth/domain"
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/app/auth/repository"
-	"github.com/sayeed1999/ride-sharing-golang-api/internal/app/auth/usecase"
+	"github.com/sayeed1999/ride-sharing-golang-api/internal/pkg/password"
 )
 
 // MockUserRepository is a simple mock implementation for testing
@@ -36,12 +36,12 @@ func NewMockUserRepository() *MockUserRepository {
 }
 
 // generateUserPassword is a helper that uses existing password functions
-func generateUserPassword(password string) (string, string, error) {
-	salt, err := usecase.GenerateSalt()
+func generateUserPassword(pass string) (string, string, error) {
+	salt, err := password.GenerateSalt()
 	if err != nil {
 		return "", "", err
 	}
-	hash, err := usecase.HashPassword(password, salt)
+	hash, err := password.HashPassword(pass, salt)
 	if err != nil {
 		return "", "", err
 	}

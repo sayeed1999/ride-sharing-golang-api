@@ -6,6 +6,7 @@ import (
 
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/app/auth/domain"
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/app/auth/repository"
+	"github.com/sayeed1999/ride-sharing-golang-api/internal/pkg/password"
 )
 
 type RegisterUsecase struct {
@@ -13,7 +14,7 @@ type RegisterUsecase struct {
 	RequireRoleOnRegistration bool
 }
 
-func (uc *RegisterUsecase) Register(email, password, role string) error {
+func (uc *RegisterUsecase) Register(email, pass, role string) error {
 	role = strings.TrimSpace(role)
 
 	// Validate role requirement if feature flag is enabled
@@ -29,11 +30,11 @@ func (uc *RegisterUsecase) Register(email, password, role string) error {
 	}
 
 	// Generate salt + hash
-	salt, err := GenerateSalt()
+	salt, err := password.GenerateSalt()
 	if err != nil {
 		return err
 	}
-	hash, err := HashPassword(password, salt)
+	hash, err := password.HashPassword(pass, salt)
 	if err != nil {
 		return err
 	}

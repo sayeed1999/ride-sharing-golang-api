@@ -4,19 +4,20 @@ import (
 	"errors"
 
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/app/auth/repository"
+	"github.com/sayeed1999/ride-sharing-golang-api/internal/pkg/password"
 )
 
 type LoginUsecase struct {
 	UserRepo repository.UserRepository
 }
 
-func (uc *LoginUsecase) Login(email, password string) error {
+func (uc *LoginUsecase) Login(email, pass string) error {
 	user, err := uc.UserRepo.FindByEmail(email)
 	if err != nil {
 		return errors.New("invalid credentials")
 	}
 
-	if !VerifyPassword(password, user.PasswordSalt, user.PasswordHash) {
+	if !password.VerifyPassword(pass, user.PasswordSalt, user.PasswordHash) {
 		return errors.New("invalid credentials")
 	}
 
