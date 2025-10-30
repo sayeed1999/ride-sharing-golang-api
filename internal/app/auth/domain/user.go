@@ -9,3 +9,8 @@ type User struct {
 	PasswordSalt string `gorm:"not null"`
 	CreatedAt    time.Time
 }
+
+// TableName sets the insert table name for this struct to the auth schema.
+func (u *User) TableName() string {
+	return "auth.users"
+}

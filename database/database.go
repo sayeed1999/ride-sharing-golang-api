@@ -36,6 +36,11 @@ func InitDBWithErrorHandling(cfg *config.Config) *gorm.DB {
 func AutoMigrate(db *gorm.DB) error {
 	log.Println("Running database migrations...")
 
+	// Ensure auth schema exists before migrating auth tables.
+	if err := db.Exec("CREATE SCHEMA IF NOT EXISTS auth").Error; err != nil {
+		return err
+	}
+
 	err := db.AutoMigrate(
 		&domain.User{},
 		&domain.Role{},

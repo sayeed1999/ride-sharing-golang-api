@@ -8,3 +8,8 @@ type UserRole struct {
 	User User `gorm:"foreignKey:UserID"`
 	Role Role `gorm:"foreignKey:RoleID"`
 }
+
+// TableName sets the insert table name for this struct to the auth schema.
+func (ur *UserRole) TableName() string {
+	return "auth.user_roles"
+}
