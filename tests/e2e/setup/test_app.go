@@ -6,24 +6,27 @@ import (
 
 	"github.com/gin-gonic/gin"
 	tc "github.com/testcontainers/testcontainers-go"
+	"gorm.io/gorm"
 )
 
 type TestApp struct {
 	router        *gin.Engine
 	testcontainer tc.Container
+	DB            *gorm.DB
 }
 
-func NewTestApp(ctx context.Context, t *testing.T) *TestApp {
+func NewTestApp(ctx context.Context, t *testing.T, rrequireRoleOnRegistration bool) *TestApp {
 
 	pgContainer, dbConfig := setupContainer(ctx, t)
 
-	cfg := buildConfig(t, dbConfig, false)
+	cfg := buildConfig(t, dbConfig, rrequireRoleOnRegistration)
 	db := setupTestDB(t, cfg)
 	router := setupRouter(t, db, cfg)
 
 	return &TestApp{
 		router:        router,
 		testcontainer: pgContainer,
+		DB:            db,
 	}
 
 }

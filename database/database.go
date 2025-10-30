@@ -58,6 +58,15 @@ func AutoMigrate(db *gorm.DB) error {
 		return err
 	}
 
+	// Seed default roles if they don't exist. Keep idempotent so repeated
+	// AutoMigrate calls are safe.
+	if err := db.Exec("INSERT INTO auth.roles (name) SELECT $1 WHERE NOT EXISTS (SELECT 1 FROM auth.roles WHERE name = $1)", "customer").Error; err != nil {
+		return err
+	}
+	if err := db.Exec("INSERT INTO auth.roles (name) SELECT $1 WHERE NOT EXISTS (SELECT 1 FROM auth.roles WHERE name = $1)", "driver").Error; err != nil {
+		return err
+	}
+
 	log.Println("Database migrations completed successfully")
 	return nil
 }

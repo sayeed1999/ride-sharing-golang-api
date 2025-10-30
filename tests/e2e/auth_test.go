@@ -16,7 +16,7 @@ import (
 
 func TestRegisterAndLogin_E2E(t *testing.T) {
 	ctx := context.Background()
-	testApp := setup.NewTestApp(ctx, t)
+	testApp := setup.NewTestApp(ctx, t, false)
 	defer testApp.CleanUp(ctx, t)
 
 	// Register user
