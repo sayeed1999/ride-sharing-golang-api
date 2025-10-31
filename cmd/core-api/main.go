@@ -17,10 +17,14 @@ func main() {
 
 	// Initialize database connection
 	db := database.InitDBWithErrorHandling(cfg)
+	sqlDB, err := db.DB()
+	if err != nil {
+		log.Fatal("Failed to get sql.DB:", err)
+	}
 	defer database.CloseDBWithErrorHandling(db)
 
-	// Auto-migrate database schemas
-	database.AutoMigrateWithErrorHandling(db)
+	// Run database migrations
+	database.RunMigrationsWithErrorHandling(sqlDB, cfg)
 
 	// Initialize Gin router
 	router := gin.Default()

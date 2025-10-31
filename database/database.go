@@ -1,15 +1,15 @@
 package database
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/sayeed1999/ride-sharing-golang-api/config"
-	authdomain "github.com/sayeed1999/ride-sharing-golang-api/internal/app/auth/domain"
-	"github.com/sayeed1999/ride-sharing-golang-api/internal/app/trip"
-	tripdomain "github.com/sayeed1999/ride-sharing-golang-api/internal/app/trip/domain"
-
-	"gorm.io/driver/postgres"
+	gormpostgres "gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
@@ -17,7 +17,7 @@ import (
 func InitDB(cfg *config.Config) (*gorm.DB, error) {
 	// Build DSN from config fields
 	dsn := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", cfg.Database.User, cfg.Database.Password, cfg.Database.Host, cfg.Database.Port, cfg.Database.DB)
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	db, err := gorm.Open(gormpostgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		return nil, err
 	}
@@ -34,64 +34,33 @@ func InitDBWithErrorHandling(cfg *config.Config) *gorm.DB {
 	return db
 }
 
-// AutoMigrate runs database migrations for all domain models
-func AutoMigrate(db *gorm.DB) error {
-	log.Println("Running database migrations...")
-
-	// Ensure auth and trip schemas exist before migrating tables.
-	if err := db.Exec("CREATE SCHEMA IF NOT EXISTS auth").Error; err != nil {
-		return err
-	}
-	if err := db.Exec("CREATE SCHEMA IF NOT EXISTS trip").Error; err != nil {
-		return err
-	}
-
-	err := db.AutoMigrate(
-		// auth module
-		&authdomain.User{},
-		&authdomain.Role{},
-		&authdomain.UserRole{},
-		// trip module
-		&tripdomain.Customer{},
-		&tripdomain.Driver{},
-		&tripdomain.VehicleType{},
-	)
-
+// RunMigrations runs the database migrations
+func RunMigrations(db *sql.DB, cfg *config.Config) error {
+	driver, err := postgres.WithInstance(db, &postgres.Config{
+		DatabaseName: cfg.Database.DB,
+	})
 	if err != nil {
 		return err
 	}
 
-	// Seed default roles if they don't exist. Keep idempotent so repeated
-	// AutoMigrate calls are safe.
-	if err := db.Exec("INSERT INTO auth.roles (name) SELECT $1 WHERE NOT EXISTS (SELECT 1 FROM auth.roles WHERE name = $1)", "customer").Error; err != nil {
-		return err
-	}
-	if err := db.Exec("INSERT INTO auth.roles (name) SELECT $1 WHERE NOT EXISTS (SELECT 1 FROM auth.roles WHERE name = $1)", "driver").Error; err != nil {
+	m, err := migrate.NewWithDatabaseInstance(
+		"file://database/migrations",
+		"postgres", driver)
+	if err != nil {
 		return err
 	}
 
-	// Seed vehicle types in trip schema
-	vehicleTypes := []struct {
-		Name     string
-		EnumCode int
-	}{
-		{"bike", int(trip.VehicleEnumBike)},
-		{"cng", int(trip.VehicleEnumCNG)},
-		{"car", int(trip.VehicleEnumCar)},
-	}
-	for _, vt := range vehicleTypes {
-		if err := db.Exec("INSERT INTO trip.vehicle_types (name, enum_code) SELECT $1, $2 WHERE NOT EXISTS (SELECT 1 FROM trip.vehicle_types WHERE name = $1)", vt.Name, vt.EnumCode).Error; err != nil {
-			return err
-		}
+	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
+		return err
 	}
 
 	log.Println("Database migrations completed successfully")
 	return nil
 }
 
-// AutoMigrateWithErrorHandling runs migrations with error handling
-func AutoMigrateWithErrorHandling(db *gorm.DB) {
-	if err := AutoMigrate(db); err != nil {
+// RunMigrationsWithErrorHandling runs migrations with error handling
+func RunMigrationsWithErrorHandling(db *sql.DB, cfg *config.Config) {
+	if err := RunMigrations(db, cfg); err != nil {
 		log.Fatal("Failed to migrate database:", err)
 	}
 }

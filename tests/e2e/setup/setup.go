@@ -76,7 +76,9 @@ func setupTestDB(t testing.TB, cfg *config.Config) *gorm.DB {
 	require.NoError(t, err)
 
 	// run migrations
-	require.NoError(t, database.AutoMigrate(db))
+	sqlDB, err := db.DB()
+	require.NoError(t, err)
+	require.NoError(t, database.RunMigrations(sqlDB, cfg))
 
 	return db
 }
