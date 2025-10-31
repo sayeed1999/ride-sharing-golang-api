@@ -14,10 +14,10 @@ type CustomerSignupRequest struct {
 }
 
 type CustomerHandler struct {
-	SignupUC *usecase.SignupUsecase
+	SignupUC *usecase.CustomerSignupUsecase
 }
 
-func NewCustomerHandler(signupUC *usecase.SignupUsecase) *CustomerHandler {
+func NewCustomerHandler(signupUC *usecase.CustomerSignupUsecase) *CustomerHandler {
 	return &CustomerHandler{SignupUC: signupUC}
 }
 

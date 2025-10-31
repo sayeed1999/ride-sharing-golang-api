@@ -23,7 +23,7 @@ func ExposeRoutes(rg *gin.RouterGroup, db *gorm.DB, cfg *config.Config) {
 	// Obtain the auth RegisterUsecase via the auth package (exported constructor)
 	registerUC := auth.NewRegisterUsecase(db, cfg)
 
-	signupUC := &usecase.SignupUsecase{
+	signupUC := &usecase.CustomerSignupUsecase{
 		CustomerRepo: custRepo,
 		AuthRegister: registerUC,
 	}

@@ -8,11 +8,11 @@ import (
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/app/trip/repository"
 )
 
-// SignupUsecase handles business logic for customer signups in trip module.
+// CustomerSignupUsecase handles business logic for customer signups in trip module.
 // It creates a customer record and then registers an auth user by calling
 // the auth module's Register usecase directly. If registering the auth user
 // fails, the created customer is deleted (compensating action).
-type SignupUsecase struct {
+type CustomerSignupUsecase struct {
 	CustomerRepo repository.CustomerRepository
 	AuthRegister *authusecase.RegisterUsecase
 }
@@ -20,7 +20,7 @@ type SignupUsecase struct {
 // Signup creates a customer and registers an auth user with the hardcoded
 // role "customer". The created customer's AuthUserID is set when auth
 // registration succeeds (currently auth.Register does not return the ID).
-func (uc *SignupUsecase) Signup(email, name, password string) (*domain.Customer, error) {
+func (uc *CustomerSignupUsecase) Signup(email, name, password string) (*domain.Customer, error) {
 	if email == "" {
 		return nil, errors.New("email is required")
 	}
