@@ -12,6 +12,8 @@ import (
 	"gorm.io/gorm"
 )
 
+// TODO: refactor and make the code clean.
+
 // ExposeRoutes wires the trip module routes to a given router group
 // It creates its own auth.RegisterUsecase (backed by the same DB) and uses
 // it to call auth registration internally (modular-monolith style).

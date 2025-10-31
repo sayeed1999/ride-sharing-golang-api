@@ -51,6 +51,17 @@ func assertAndLogErrors(t testing.TB, w *httptest.ResponseRecorder, expectedHttp
 	require.Equal(t, expectedHttpStatus, w.Code)
 }
 
+func assertAndLogErrorsWithBody(t testing.TB, w *httptest.ResponseRecorder, expectedHttpStatus int, expectedBody string) {
+	t.Helper() // marks this function as a test helper
+
+	if w.Code != expectedHttpStatus {
+		t.Logf("Unexpected status code: %d\nBody: %s", w.Code, w.Body.String())
+	}
+
+	require.Equal(t, expectedHttpStatus, w.Code)
+	require.Contains(t, w.Body.String(), expectedBody)
+}
+
 // doJSONRequest is a small helper to marshal payload and perform an HTTP request
 func doJSONRequest(t testing.TB, handler http.Handler, method, path string, payload interface{}) *httptest.ResponseRecorder {
 	t.Helper() // marks this function as a test helper
