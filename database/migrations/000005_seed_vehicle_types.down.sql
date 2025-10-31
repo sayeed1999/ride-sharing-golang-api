@@ -1,0 +1,1 @@
+TRUNCATE TABLE trip.vehicle_types;
