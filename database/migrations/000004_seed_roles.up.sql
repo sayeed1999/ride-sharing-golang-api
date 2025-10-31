@@ -1,0 +1,1 @@
+INSERT INTO auth.roles (name) VALUES ('customer'), ('driver');
