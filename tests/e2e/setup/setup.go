@@ -78,16 +78,6 @@ func setupTestDB(t testing.TB, cfg *config.Config) *gorm.DB {
 	// run migrations
 	require.NoError(t, database.AutoMigrate(db))
 
-	// Seed essential roles used by tests and application logic.
-	// Use INSERT ... SELECT WHERE NOT EXISTS to avoid relying on unique
-	// constraints and keep idempotency.
-	if err := db.Exec("INSERT INTO auth.roles (name) SELECT $1 WHERE NOT EXISTS (SELECT 1 FROM auth.roles WHERE name = $1)", "customer").Error; err != nil {
-		require.NoError(t, err)
-	}
-	if err := db.Exec("INSERT INTO auth.roles (name) SELECT $1 WHERE NOT EXISTS (SELECT 1 FROM auth.roles WHERE name = $1)", "driver").Error; err != nil {
-		require.NoError(t, err)
-	}
-
 	return db
 }
 

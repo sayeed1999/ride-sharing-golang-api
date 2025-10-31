@@ -2,9 +2,14 @@ package http
 
 import "github.com/gin-gonic/gin"
 
-// RegisterRoutes registers routes for a preconstructed CustomerHandler.
+// RegisterCustomerRoutes registers routes for a preconstructed CustomerHandler.
 // The handler should be created by module wiring after repositories and
 // usecases are available.
-func RegisterRoutes(rg *gin.RouterGroup, h *CustomerHandler) {
+func RegisterCustomerRoutes(rg *gin.RouterGroup, h *CustomerHandler) {
 	rg.POST("/signup", h.CustomerSignup)
+}
+
+// RegisterDriverRoutes registers routes for driver-related handlers.
+func RegisterDriverRoutes(rg *gin.RouterGroup, h *DriverHandler) {
+	rg.POST("/signup", h.DriverSignup)
 }

@@ -6,6 +6,7 @@ import (
 
 	"github.com/sayeed1999/ride-sharing-golang-api/config"
 	authdomain "github.com/sayeed1999/ride-sharing-golang-api/internal/app/auth/domain"
+	"github.com/sayeed1999/ride-sharing-golang-api/internal/app/trip"
 	tripdomain "github.com/sayeed1999/ride-sharing-golang-api/internal/app/trip/domain"
 
 	"gorm.io/driver/postgres"
@@ -52,6 +53,8 @@ func AutoMigrate(db *gorm.DB) error {
 		&authdomain.UserRole{},
 		// trip module
 		&tripdomain.Customer{},
+		&tripdomain.Driver{},
+		&tripdomain.VehicleType{},
 	)
 
 	if err != nil {
@@ -65,6 +68,21 @@ func AutoMigrate(db *gorm.DB) error {
 	}
 	if err := db.Exec("INSERT INTO auth.roles (name) SELECT $1 WHERE NOT EXISTS (SELECT 1 FROM auth.roles WHERE name = $1)", "driver").Error; err != nil {
 		return err
+	}
+
+	// Seed vehicle types in trip schema
+	vehicleTypes := []struct {
+		Name     string
+		EnumCode int
+	}{
+		{"bike", int(trip.VehicleEnumBike)},
+		{"cng", int(trip.VehicleEnumCNG)},
+		{"car", int(trip.VehicleEnumCar)},
+	}
+	for _, vt := range vehicleTypes {
+		if err := db.Exec("INSERT INTO trip.vehicle_types (name, enum_code) SELECT $1, $2 WHERE NOT EXISTS (SELECT 1 FROM trip.vehicle_types WHERE name = $1)", vt.Name, vt.EnumCode).Error; err != nil {
+			return err
+		}
 	}
 
 	log.Println("Database migrations completed successfully")

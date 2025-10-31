@@ -31,5 +31,16 @@ func ExposeRoutes(rg *gin.RouterGroup, db *gorm.DB, cfg *config.Config) {
 	custHandler := triphttp.NewCustomerHandler(signupUC)
 
 	customers := rg.Group("/customers")
-	triphttp.RegisterRoutes(customers, custHandler)
+	triphttp.RegisterCustomerRoutes(customers, custHandler)
+
+	// --- Driver wiring ---
+	driverRepo := &postgres.DriverRepo{DB: db}
+	var drvRepo repository.DriverRepository = driverRepo
+	driverSignupUC := &usecase.DriverSignupUsecase{
+		DriverRepo:   drvRepo,
+		AuthRegister: registerUC,
+	}
+	drvHandler := triphttp.NewDriverHandler(driverSignupUC)
+	drivers := rg.Group("/drivers")
+	triphttp.RegisterDriverRoutes(drivers, drvHandler)
 }

@@ -7,7 +7,7 @@ import (
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/app/trip/usecase"
 )
 
-type SignupRequest struct {
+type CustomerSignupRequest struct {
 	Email    string `json:"email" binding:"required,email"`
 	Name     string `json:"name" binding:"required"`
 	Password string `json:"password" binding:"required,min=6"`
@@ -22,7 +22,7 @@ func NewCustomerHandler(signupUC *usecase.SignupUsecase) *CustomerHandler {
 }
 
 func (h *CustomerHandler) CustomerSignup(c *gin.Context) {
-	var req SignupRequest
+	var req CustomerSignupRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
 		return
