@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"path/filepath"
+	"runtime"
 
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
@@ -43,8 +45,12 @@ func RunMigrations(db *sql.DB, cfg *config.Config) error {
 		return err
 	}
 
+	_, b, _, _ := runtime.Caller(0)
+	basepath := filepath.Dir(b)
+	migrationsPath := filepath.Join(basepath, "migrations")
+
 	m, err := migrate.NewWithDatabaseInstance(
-		"file://database/migrations",
+		"file://"+migrationsPath,
 		"postgres", driver)
 	if err != nil {
 		return err
