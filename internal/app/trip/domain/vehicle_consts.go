@@ -11,22 +11,19 @@ const (
 	VehicleEnumCar  VehicleEnum = 3
 )
 
-var vehicleNameMap = map[string]struct {
-	enum VehicleEnum
-	name string
-}{
-	"bike": {VehicleEnumBike, "bike"},
-	"cng":  {VehicleEnumCNG, "cng"},
-	"car":  {VehicleEnumCar, "car"},
+var vehicleNameMap = map[string]VehicleEnum{
+	"bike": VehicleEnumBike,
+	"cng":  VehicleEnumCNG,
+	"car":  VehicleEnumCar,
 }
 
 // LookupVehicleEnum looks up the enum and canonical name by a user-provided
 // vehicle type string (case-insensitive). Returns (enum, name, found).
 func LookupVehicleEnum(s string) (VehicleEnum, string, bool) {
 	key := strings.ToLower(strings.TrimSpace(s))
-	v, ok := vehicleNameMap[key]
+	enum, ok := vehicleNameMap[key]
 	if !ok {
 		return 0, "", false
 	}
-	return v.enum, v.name, true
+	return enum, key, true
 }
