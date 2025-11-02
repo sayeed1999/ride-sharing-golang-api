@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/sayeed1999/ride-sharing-golang-api/internal/app/trip/domain"
 	"github.com/sayeed1999/ride-sharing-golang-api/tests/e2e/setup"
 	"github.com/stretchr/testify/require"
 )
@@ -40,12 +41,12 @@ func TestRequestTrip_E2E(t *testing.T) {
 	w = doJSONRequest(t, testApp.Router(), http.MethodPost, "/trip-requests/request", tripRequestPayload)
 	assertAndLogErrors(t, w, http.StatusCreated)
 
-	// // 3. Verify trip.trip_requests has the record
-	// var tripRequestRec domain.TripRequest
-	// err = testApp.DB.Raw("SELECT customer_id, origin, destination, status FROM trip.trip_requests WHERE customer_id = ?", customer.ID).Scan(&tripRequestRec).Error
-	// require.NoError(t, err)
-	// require.Equal(t, customer.ID, tripRequestRec.CustomerID)
-	// require.Equal(t, "123 Main St", tripRequestRec.Origin)
-	// require.Equal(t, "456 Oak Ave", tripRequestRec.Destination)
-	// require.Equal(t, domain.NO_DRIVER_FOUND, tripRequestRec.Status)
+	// 3. Verify trip.trip_requests has the record
+	var tripRequestRec domain.TripRequest
+	err = testApp.DB.Raw("SELECT customer_id, origin, destination, status FROM trip.trip_requests WHERE customer_id = ?", customer.ID).Scan(&tripRequestRec).Error
+	require.NoError(t, err)
+	require.Equal(t, customer.ID, tripRequestRec.CustomerID.String())
+	require.Equal(t, "123 Main St", tripRequestRec.Origin)
+	require.Equal(t, "456 Oak Ave", tripRequestRec.Destination)
+	require.Equal(t, domain.NO_DRIVER_FOUND, tripRequestRec.Status)
 }
