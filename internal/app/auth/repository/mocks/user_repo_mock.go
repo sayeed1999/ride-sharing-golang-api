@@ -2,7 +2,9 @@ package mocks
 
 import (
 	"errors"
+	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/app/auth/domain"
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/app/auth/repository"
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/pkg/password"
@@ -23,14 +25,14 @@ func NewMockUserRepository() *MockUserRepository {
 
 	return &MockUserRepository{
 		users: []domain.User{
-			{ID: 1, Email: "john@example.com", PasswordHash: hash1, PasswordSalt: salt1},
-			{ID: 2, Email: "jane@example.com", PasswordHash: hash2, PasswordSalt: salt2},
-			{ID: 3, Email: "admin@example.com", PasswordHash: hash3, PasswordSalt: salt3},
+			{ID: uuid.New().String(), Email: "john@example.com", PasswordHash: hash1, PasswordSalt: salt1},
+			{ID: uuid.New().String(), Email: "jane@example.com", PasswordHash: hash2, PasswordSalt: salt2},
+			{ID: uuid.New().String(), Email: "admin@example.com", PasswordHash: hash3, PasswordSalt: salt3},
 		},
 		roles: []domain.Role{
-			{ID: 1, Name: "customer"},
-			{ID: 2, Name: "driver"},
-			{ID: 3, Name: "admin"},
+			{ID: uuid.New().String(), Name: "customer"},
+			{ID: uuid.New().String(), Name: "driver"},
+			{ID: uuid.New().String(), Name: "admin"},
 		},
 	}
 }
@@ -58,7 +60,7 @@ func (m *MockUserRepository) CreateUser(user *domain.User) (*domain.User, error)
 	}
 
 	// Assign ID and add user
-	user.ID = uint(len(m.users) + 1)
+	user.ID = uuid.New().String()
 	m.users = append(m.users, *user)
 	return user, nil
 }
@@ -74,22 +76,22 @@ func (m *MockUserRepository) FindByEmail(email string) (*domain.User, error) {
 }
 
 // AssignRole assigns a role to a user (simplified - just returns success)
-func (m *MockUserRepository) AssignRole(userID uint, roleName string) (*domain.UserRole, error) {
+func (m *MockUserRepository) AssignRole(userID string, roleName string) (*domain.UserRole, error) {
 	// Find the role
-	var roleID uint
+	var roleID string
 	for _, role := range m.roles {
 		if role.Name == roleName {
 			roleID = role.ID
 			break
 		}
 	}
-	if roleID == 0 {
-		return nil, errors.New("role not found")
+	if roleID == "" {
+		return nil, errors.New(fmt.Sprintf("role %s not found", roleName))
 	}
 
 	// Return a mock UserRole
 	return &domain.UserRole{
-		ID:     uint(len(m.users) + 1),
+		ID:     uuid.New().String(),
 		UserID: userID,
 		RoleID: roleID,
 	}, nil
