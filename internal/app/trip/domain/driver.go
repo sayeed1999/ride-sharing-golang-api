@@ -1,11 +1,15 @@
 package domain
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 // Driver represents a driver in the trip module. It stores a reference to the
 // auth user via AuthUserID (nullable) and vehicle details.
 type Driver struct {
-	ID                  string    `gorm:"type:uuid;primary_key;default:gen_random_uuid()" json:"id"`
+	ID                  uuid.UUID `gorm:"type:uuid;primary_key;default:gen_random_uuid()" json:"id"`
 	Email               string    `gorm:"uniqueIndex;size:255;not null" json:"email"`
 	Name                string    `gorm:"size:255" json:"name"`
 	AuthUserID          *uint     `gorm:"index" json:"auth_user_id"`

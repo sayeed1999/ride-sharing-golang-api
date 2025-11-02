@@ -1,9 +1,11 @@
 package domain
 
+import "github.com/google/uuid"
+
 type UserRole struct {
-	ID     string `gorm:"type:uuid;primary_key;default:gen_random_uuid()"`
-	UserID string `gorm:"type:uuid;uniqueIndex:idx_user_role"`
-	RoleID string `gorm:"type:uuid;uniqueIndex:idx_user_role"`
+	ID     uuid.UUID `gorm:"type:uuid;primary_key;default:gen_random_uuid()"`
+	UserID uuid.UUID `gorm:"type:uuid;uniqueIndex:idx_user_role"`
+	RoleID uuid.UUID `gorm:"type:uuid;uniqueIndex:idx_user_role"`
 
 	User User `gorm:"foreignKey:UserID"`
 	Role Role `gorm:"foreignKey:RoleID"`

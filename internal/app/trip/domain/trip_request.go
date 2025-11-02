@@ -1,8 +1,9 @@
-
 package domain
 
 import (
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type TripRequestStatus int
@@ -19,8 +20,8 @@ const (
 
 // TripRequest represents a customer's request for a ride.
 type TripRequest struct {
-	ID          string            `gorm:"type:uuid;primary_key;" json:"id"`
-	CustomerID  string            `gorm:"type:uuid;not null" json:"customer_id"`
+	ID          uuid.UUID         `gorm:"type:uuid;primary_key;" json:"id"`
+	CustomerID  uuid.UUID         `gorm:"type:uuid;not null" json:"customer_id"`
 	Origin      string            `gorm:"size:255;not null" json:"origin"`
 	Destination string            `gorm:"size:255;not null" json:"destination"`
 	Status      TripRequestStatus `gorm:"not null" json:"status"`

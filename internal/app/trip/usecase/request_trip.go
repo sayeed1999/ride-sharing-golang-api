@@ -1,7 +1,7 @@
-
 package usecase
 
 import (
+	"github.com/google/uuid"
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/app/trip/domain"
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/app/trip/repository"
 )
@@ -19,7 +19,7 @@ func NewRequestTripUsecase(tripRequestRepo repository.TripRequestRepository) *Re
 }
 
 // Execute creates a new trip request.
-func (uc *RequestTripUsecase) Execute(customerID string, origin, destination string) (*domain.TripRequest, error) {
+func (uc *RequestTripUsecase) Execute(customerID uuid.UUID, origin, destination string) (*domain.TripRequest, error) {
 	tripRequest := &domain.TripRequest{
 		CustomerID:  customerID,
 		Origin:      origin,
@@ -34,4 +34,3 @@ func (uc *RequestTripUsecase) Execute(customerID string, origin, destination str
 
 	return createdTripRequest, nil
 }
-

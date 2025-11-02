@@ -1,10 +1,10 @@
-
 package http
 
 import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/app/trip/usecase"
 )
 
@@ -29,7 +29,13 @@ func (h *TripRequestHandler) RequestTrip(c *gin.Context) {
 		return
 	}
 
-	tripRequest, err := h.RequestTripUC.Execute(req.CustomerID, req.Origin, req.Destination)
+	customerUUID, err := uuid.Parse(req.CustomerID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid customer ID"})
+		return
+	}
+
+	tripRequest, err := h.RequestTripUC.Execute(customerUUID, req.Origin, req.Destination)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

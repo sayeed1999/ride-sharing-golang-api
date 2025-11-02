@@ -1,7 +1,7 @@
-
 package postgres
 
 import (
+	"github.com/google/uuid"
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/app/trip/domain"
 	"gorm.io/gorm"
 )
@@ -23,7 +23,7 @@ func (r *TripRequestRepo) Create(tr *domain.TripRequest) (*domain.TripRequest, e
 	return tr, nil
 }
 
-func (r *TripRequestRepo) FindByID(id string) (*domain.TripRequest, error) {
+func (r *TripRequestRepo) FindByID(id uuid.UUID) (*domain.TripRequest, error) {
 	var tr domain.TripRequest
 	if err := r.DB.First(&tr, "id = ?", id).Error; err != nil {
 		return nil, err

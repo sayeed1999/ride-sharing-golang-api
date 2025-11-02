@@ -25,14 +25,14 @@ func NewMockUserRepository() *MockUserRepository {
 
 	return &MockUserRepository{
 		users: []domain.User{
-			{ID: uuid.New().String(), Email: "john@example.com", PasswordHash: hash1, PasswordSalt: salt1},
-			{ID: uuid.New().String(), Email: "jane@example.com", PasswordHash: hash2, PasswordSalt: salt2},
-			{ID: uuid.New().String(), Email: "admin@example.com", PasswordHash: hash3, PasswordSalt: salt3},
+			{ID: uuid.New(), Email: "john@example.com", PasswordHash: hash1, PasswordSalt: salt1},
+			{ID: uuid.New(), Email: "jane@example.com", PasswordHash: hash2, PasswordSalt: salt2},
+			{ID: uuid.New(), Email: "admin@example.com", PasswordHash: hash3, PasswordSalt: salt3},
 		},
 		roles: []domain.Role{
-			{ID: uuid.New().String(), Name: "customer"},
-			{ID: uuid.New().String(), Name: "driver"},
-			{ID: uuid.New().String(), Name: "admin"},
+			{ID: uuid.New(), Name: "customer"},
+			{ID: uuid.New(), Name: "driver"},
+			{ID: uuid.New(), Name: "admin"},
 		},
 	}
 }
@@ -60,7 +60,7 @@ func (m *MockUserRepository) CreateUser(user *domain.User) (*domain.User, error)
 	}
 
 	// Assign ID and add user
-	user.ID = uuid.New().String()
+	user.ID = uuid.New()
 	m.users = append(m.users, *user)
 	return user, nil
 }
@@ -76,22 +76,22 @@ func (m *MockUserRepository) FindByEmail(email string) (*domain.User, error) {
 }
 
 // AssignRole assigns a role to a user (simplified - just returns success)
-func (m *MockUserRepository) AssignRole(userID string, roleName string) (*domain.UserRole, error) {
+func (m *MockUserRepository) AssignRole(userID uuid.UUID, roleName string) (*domain.UserRole, error) {
 	// Find the role
-	var roleID string
+	var roleID uuid.UUID
 	for _, role := range m.roles {
 		if role.Name == roleName {
 			roleID = role.ID
 			break
 		}
 	}
-	if roleID == "" {
+	if roleID == uuid.Nil {
 		return nil, errors.New(fmt.Sprintf("role %s not found", roleName))
 	}
 
 	// Return a mock UserRole
 	return &domain.UserRole{
-		ID:     uuid.New().String(),
+		ID:     uuid.New(),
 		UserID: userID,
 		RoleID: roleID,
 	}, nil

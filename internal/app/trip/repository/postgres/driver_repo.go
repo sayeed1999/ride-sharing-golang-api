@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"github.com/google/uuid"
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/app/trip/domain"
 
 	"gorm.io/gorm"
@@ -17,7 +18,7 @@ func (r *DriverRepo) CreateDriver(d *domain.Driver) (*domain.Driver, error) {
 	return d, nil
 }
 
-func (r *DriverRepo) FindByID(id string) (*domain.Driver, error) {
+func (r *DriverRepo) FindByID(id uuid.UUID) (*domain.Driver, error) {
 	var d domain.Driver
 	if err := r.DB.First(&d, "id = ?", id).Error; err != nil {
 		return nil, err
@@ -25,6 +26,6 @@ func (r *DriverRepo) FindByID(id string) (*domain.Driver, error) {
 	return &d, nil
 }
 
-func (r *DriverRepo) DeleteDriver(id string) error {
+func (r *DriverRepo) DeleteDriver(id uuid.UUID) error {
 	return r.DB.Delete(&domain.Driver{}, "id = ?", id).Error
 }
