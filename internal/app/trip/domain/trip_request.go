@@ -20,7 +20,7 @@ const (
 // TripRequest represents a customer's request for a ride.
 type TripRequest struct {
 	ID          string            `gorm:"type:uuid;primary_key;" json:"id"`
-	CustomerID  string            `gorm:"type:uuid;not null" json:"customer_id"`
+	CustomerID  uint              `gorm:"not null" json:"customer_id"`
 	Origin      string            `gorm:"size:255;not null" json:"origin"`
 	Destination string            `gorm:"size:255;not null" json:"destination"`
 	Status      TripRequestStatus `gorm:"not null" json:"status"`
