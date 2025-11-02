@@ -26,6 +26,18 @@ func (r *DriverRepo) FindByID(id uuid.UUID) (*domain.Driver, error) {
 	return &d, nil
 }
 
+func (r *DriverRepo) FindByEmail(email string) (*domain.Driver, error) {
+	var d domain.Driver
+	if err := r.DB.First(&d, "email = ?", email).Error; err != nil {
+		return nil, err
+	}
+	return &d, nil
+}
+
 func (r *DriverRepo) DeleteDriver(id uuid.UUID) error {
 	return r.DB.Delete(&domain.Driver{}, "id = ?", id).Error
+}
+
+func (r *DriverRepo) UpdateAuthUserID(driverID uuid.UUID, authUserID uuid.UUID) error {
+	return r.DB.Model(&domain.Driver{}).Where("id = ?", driverID).Update("auth_user_id", authUserID).Error
 }

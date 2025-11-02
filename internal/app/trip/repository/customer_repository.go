@@ -8,7 +8,8 @@ import (
 type CustomerRepository interface {
 	CreateCustomer(c *domain.Customer) (*domain.Customer, error)
 	FindByID(id uuid.UUID) (*domain.Customer, error)
+	FindByEmail(email string) (*domain.Customer, error)
 	DeleteCustomer(id uuid.UUID) error
 	// UpdateAuthUserID updates the auth_user_id for a customer record
-	UpdateAuthUserID(customerID uuid.UUID, authUserID uint) error
+	UpdateAuthUserID(customerID uuid.UUID, authUserID uuid.UUID) error
 }

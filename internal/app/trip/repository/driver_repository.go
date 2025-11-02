@@ -8,5 +8,7 @@ import (
 type DriverRepository interface {
 	CreateDriver(d *domain.Driver) (*domain.Driver, error)
 	FindByID(id uuid.UUID) (*domain.Driver, error)
+	FindByEmail(email string) (*domain.Driver, error)
 	DeleteDriver(id uuid.UUID) error
+	UpdateAuthUserID(driverID uuid.UUID, authUserID uuid.UUID) error
 }

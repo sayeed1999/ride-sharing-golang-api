@@ -26,10 +26,18 @@ func (r *CustomerRepo) FindByID(id uuid.UUID) (*domain.Customer, error) {
 	return &c, nil
 }
 
+func (r *CustomerRepo) FindByEmail(email string) (*domain.Customer, error) {
+	var c domain.Customer
+	if err := r.DB.First(&c, "email = ?", email).Error; err != nil {
+		return nil, err
+	}
+	return &c, nil
+}
+
 func (r *CustomerRepo) DeleteCustomer(id uuid.UUID) error {
 	return r.DB.Delete(&domain.Customer{}, "id = ?", id).Error
 }
 
-func (r *CustomerRepo) UpdateAuthUserID(customerID uuid.UUID, authUserID uint) error {
+func (r *CustomerRepo) UpdateAuthUserID(customerID uuid.UUID, authUserID uuid.UUID) error {
 	return r.DB.Model(&domain.Customer{}).Where("id = ?", customerID).Update("auth_user_id", authUserID).Error
 }
