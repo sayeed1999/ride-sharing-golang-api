@@ -8,14 +8,7 @@ import (
 
 // RequestTripUsecase handles the business logic for a customer to request a trip.
 type RequestTripUsecase struct {
-	tripRequestRepo repository.TripRequestRepository
-}
-
-// NewRequestTripUsecase creates a new RequestTripUsecase.
-func NewRequestTripUsecase(tripRequestRepo repository.TripRequestRepository) *RequestTripUsecase {
-	return &RequestTripUsecase{
-		tripRequestRepo: tripRequestRepo,
-	}
+	TripRequestRepo repository.TripRequestRepository
 }
 
 // Execute creates a new trip request.
@@ -27,7 +20,7 @@ func (uc *RequestTripUsecase) Execute(customerID uuid.UUID, origin, destination 
 		Status:      domain.NO_DRIVER_FOUND, // default status
 	}
 
-	createdTripRequest, err := uc.tripRequestRepo.Create(tripRequest)
+	createdTripRequest, err := uc.TripRequestRepo.Create(tripRequest)
 	if err != nil {
 		return nil, err
 	}

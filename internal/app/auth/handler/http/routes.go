@@ -1,11 +1,37 @@
 package http
 
-import "github.com/gin-gonic/gin"
+import (
+	"time"
 
-// RegisterRoutes registers routes for an existing AuthHandler instance.
-// The handler should be constructed by the module wiring layer (module.go)
-// after repositories and usecases have been created.
-func RegisterRoutes(rg *gin.RouterGroup, h *AuthHandler) {
-	rg.POST("/register", h.Register)
-	rg.POST("/login", h.Login)
+	"github.com/gin-gonic/gin"
+	"github.com/sayeed1999/ride-sharing-golang-api/config"
+	"github.com/sayeed1999/ride-sharing-golang-api/internal/app/auth/repository"
+	"github.com/sayeed1999/ride-sharing-golang-api/internal/app/auth/repository/postgres"
+	"github.com/sayeed1999/ride-sharing-golang-api/internal/app/auth/usecase"
+	jwtpkg "github.com/sayeed1999/ride-sharing-golang-api/pkg/jwt"
+
+	"gorm.io/gorm"
+)
+
+// RegisterAllHTTPRoutes registers all HTTP routes for the auth module.
+// It performs dependency injection for the HTTP handlers internally.
+func RegisterAllHTTPRoutes(rg *gin.RouterGroup, db *gorm.DB, cfg *config.Config) {
+	// Repositories
+	postgresRepo := &postgres.UserRepo{DB: db}
+	var userRepo repository.UserRepository = postgresRepo
+
+	// Usecases
+	registerUC := &usecase.RegisterUsecase{
+		UserRepo:                  userRepo,
+		RequireRoleOnRegistration: cfg.FeatureFlags.RequireRoleOnRegistration,
+	}
+	loginUC := &usecase.LoginUsecase{UserRepo: userRepo}
+
+	// JWT service (injected)
+	jwtService := jwtpkg.New(cfg.Auth.JWTSecret, 24*time.Hour)
+
+	authHandler := NewAuthHandler(registerUC, loginUC, jwtService)
+
+	rg.POST("/register", authHandler.Register)
+	rg.POST("/login", authHandler.Login)
 }

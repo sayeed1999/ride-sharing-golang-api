@@ -10,12 +10,6 @@ type TripRequestRepo struct {
 	DB *gorm.DB
 }
 
-func NewTripRequestRepo(db *gorm.DB) *TripRequestRepo {
-	return &TripRequestRepo{
-		DB: db,
-	}
-}
-
 func (r *TripRequestRepo) Create(tr *domain.TripRequest) (*domain.TripRequest, error) {
 	if err := r.DB.Create(tr).Error; err != nil {
 		return nil, err

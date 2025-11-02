@@ -55,10 +55,10 @@ This layer is responsible for exposing the application's functionality through v
 - **Service Implementation (`internal/app/<module>/handler/grpc/service.go`):** Implement the gRPC service interface generated from your `.proto` file. This service should call the appropriate usecase to perform business logic.
 - **Server Registration:** Register your gRPC service with the main gRPC server, typically within `internal/app/<module>/module.go` or a dedicated gRPC module.
 
-### 6. Module Definition and Dependency Injection
+### 6. Module Definition and Route Exposure
 
-- In `internal/app/<module>/module.go`, ensure that all dependencies (repositories, usecases, handlers) are correctly wired together using dependency injection.
-- This file is also responsible for exposing the module's HTTP routes to the main application router.
+- In `internal/app/<module>/module.go`, the primary responsibility is to expose the module's routes to the main application router. This file acts as the entry point for integrating the module's API endpoints into the overall application.
+- Dependency injection for handlers (e.g., HTTP, GraphQL, gRPC) is now handled within their respective handler packages (e.g., `internal/app/<module>/handler/http/routes.go`). The `module.go` will call a function from the handler package (e.g., `triphttp.RegisterAllHTTPRoutes`) to register the routes, passing in necessary core dependencies like the database connection and configuration.
 
 ### 7. Testing
 
