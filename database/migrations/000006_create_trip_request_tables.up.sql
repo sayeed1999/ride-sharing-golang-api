@@ -1,5 +1,5 @@
 
-CREATE TABLE IF NOT EXISTS "trip_requests" (
+CREATE TABLE IF NOT EXISTS "trip.trip_requests" (
     "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     "customer_id" UUID NOT NULL,
     "origin" VARCHAR(255) NOT NULL,

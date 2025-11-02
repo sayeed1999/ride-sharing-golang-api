@@ -29,5 +29,5 @@ type TripRequest struct {
 }
 
 func (TripRequest) TableName() string {
-	return "trip_requests"
+	return "trip.trip_requests"
 }
