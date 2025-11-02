@@ -7,5 +7,5 @@ CREATE TABLE IF NOT EXISTS "trip.trip_requests" (
     "status" VARCHAR(50) NOT NULL,
     "created_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY ("customer_id") REFERENCES "customers"("id")
+    FOREIGN KEY ("customer_id") REFERENCES "trip.customers"("id")
 );
