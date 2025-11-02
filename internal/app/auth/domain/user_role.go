@@ -1,9 +1,9 @@
 package domain
 
 type UserRole struct {
-	ID     uint `gorm:"primaryKey"`
-	UserID uint `gorm:"uniqueIndex:idx_user_role"`
-	RoleID uint `gorm:"uniqueIndex:idx_user_role"`
+	ID     string `gorm:"type:uuid;primary_key;"`
+	UserID string `gorm:"type:uuid;uniqueIndex:idx_user_role"`
+	RoleID string `gorm:"type:uuid;uniqueIndex:idx_user_role"`
 
 	User User `gorm:"foreignKey:UserID"`
 	Role Role `gorm:"foreignKey:RoleID"`

@@ -28,7 +28,7 @@ func (r *UserRepo) FindByEmail(email string) (*domain.User, error) {
 	return &user, nil
 }
 
-func (r *UserRepo) AssignRole(userID uint, roleName string) (*domain.UserRole, error) {
+func (r *UserRepo) AssignRole(userID string, roleName string) (*domain.UserRole, error) {
 	var role domain.Role
 	if err := r.DB.Where("name = ?", roleName).First(&role).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {

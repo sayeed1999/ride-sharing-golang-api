@@ -26,11 +26,11 @@ func TestRequestTrip_E2E(t *testing.T) {
 
 	// Extract customer ID
 	var customer struct {
-		ID uint `json:"id"`
+		ID string `json:"id"`
 	}
 	err := testApp.DB.Raw("SELECT id FROM trip.customers WHERE email = ?", email).Scan(&customer.ID).Error
 	require.NoError(t, err)
-	require.NotZero(t, customer.ID, "Customer ID should not be zero")
+	require.NotEmpty(t, customer.ID, "Customer ID should not be empty")
 
 	// 2. Request a trip
 	tripRequestPayload := map[string]interface{}{

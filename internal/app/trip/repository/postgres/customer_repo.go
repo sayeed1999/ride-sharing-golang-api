@@ -17,18 +17,18 @@ func (r *CustomerRepo) CreateCustomer(c *domain.Customer) (*domain.Customer, err
 	return c, nil
 }
 
-func (r *CustomerRepo) FindByID(id uint) (*domain.Customer, error) {
+func (r *CustomerRepo) FindByID(id string) (*domain.Customer, error) {
 	var c domain.Customer
-	if err := r.DB.First(&c, id).Error; err != nil {
+	if err := r.DB.First(&c, "id = ?", id).Error; err != nil {
 		return nil, err
 	}
 	return &c, nil
 }
 
-func (r *CustomerRepo) DeleteCustomer(id uint) error {
-	return r.DB.Delete(&domain.Customer{}, id).Error
+func (r *CustomerRepo) DeleteCustomer(id string) error {
+	return r.DB.Delete(&domain.Customer{}, "id = ?", id).Error
 }
 
-func (r *CustomerRepo) UpdateAuthUserID(customerID uint, authUserID uint) error {
+func (r *CustomerRepo) UpdateAuthUserID(customerID string, authUserID uint) error {
 	return r.DB.Model(&domain.Customer{}).Where("id = ?", customerID).Update("auth_user_id", authUserID).Error
 }

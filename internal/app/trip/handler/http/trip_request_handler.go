@@ -9,7 +9,7 @@ import (
 )
 
 type TripRequestRequest struct {
-	CustomerID  uint `json:"customer_id" binding:"required"`
+	CustomerID  string `json:"customer_id" binding:"required"`
 	Origin      string `json:"origin" binding:"required"`
 	Destination string `json:"destination" binding:"required"`
 }

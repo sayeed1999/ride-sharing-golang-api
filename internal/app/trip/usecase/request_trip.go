@@ -19,7 +19,7 @@ func NewRequestTripUsecase(tripRequestRepo repository.TripRequestRepository) *Re
 }
 
 // Execute creates a new trip request.
-func (uc *RequestTripUsecase) Execute(customerID uint, origin, destination string) (*domain.TripRequest, error) {
+func (uc *RequestTripUsecase) Execute(customerID string, origin, destination string) (*domain.TripRequest, error) {
 	tripRequest := &domain.TripRequest{
 		CustomerID:  customerID,
 		Origin:      origin,

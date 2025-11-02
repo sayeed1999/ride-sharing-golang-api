@@ -1,7 +1,7 @@
 package domain
 
 type Role struct {
-	ID   uint   `gorm:"primaryKey"`
+	ID   string `gorm:"type:uuid;primary_key;"`
 	Name string `gorm:"unique;not null"`
 }
 

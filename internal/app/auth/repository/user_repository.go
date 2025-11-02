@@ -8,5 +8,5 @@ import (
 type UserRepository interface {
 	CreateUser(user *domain.User) (*domain.User, error)
 	FindByEmail(email string) (*domain.User, error)
-	AssignRole(userID uint, roleName string) (*domain.UserRole, error)
+	AssignRole(userID string, roleName string) (*domain.UserRole, error)
 }
