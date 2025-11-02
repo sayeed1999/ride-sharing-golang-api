@@ -1,7 +1,7 @@
 package domain
 
 type UserRole struct {
-	ID     string `gorm:"type:uuid;primary_key;"`
+	ID     string `gorm:"type:uuid;primary_key;default:gen_random_uuid()"`
 	UserID string `gorm:"type:uuid;uniqueIndex:idx_user_role"`
 	RoleID string `gorm:"type:uuid;uniqueIndex:idx_user_role"`
 
