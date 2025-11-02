@@ -84,3 +84,18 @@ To stop the running containers, run: -
 ```noset
 docker-compose -f deployments/docker/docker-compose.yml down
 ```
+
+## Troubleshooting
+
+### Dirty Database Migration
+
+<i>We are using **golang-migrate** for managing database migrations.</i>
+
+In the event of a migration failure that results in a "dirty database" error, you may need to manually intervene to resolve the issue. This typically happens when a migration script fails midway, leaving the database in an inconsistent state. To fix this, you can follow these steps:
+
+1.  Open a PostgreSQL administration tool (e.g., pgAdmin).
+2.  Connect to the application database.
+3.  Navigate to the `public.schema_migrations` table.
+4.  You will see a row for each migration that has been applied. The `version` column corresponds to the migration file number, and the `dirty` column indicates whether the migration failed.
+5.  To fix a dirty migration, you will need to manually edit the corresponding row in the `schema_migrations` table. For example, if migration version 6 is dirty, you would change the `version` from 6 to 5 and the `dirty` column from `true` to `false`.
+6.  After manually fixing the `schema_migrations` table, you can run the down migration to revert the changes and then run the up migration again to apply the changes correctly.
