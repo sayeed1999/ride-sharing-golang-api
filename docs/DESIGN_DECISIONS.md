@@ -28,3 +28,11 @@ In E2E testing, the setup process contains a series of tasks:
 4. Expose routes via a http server
 
 We used facade pattern via `test_app.go` to wrap up these tasks into a single point and used `NewTestApp()` method from tests to simplify the process.
+
+## Trip and Trip Request Separation
+
+We have decided to use separate tables for `trip_requests` and `trips` for the following reasons:
+
+- **Data Integrity**: A `trip` must have a `driver_id`, but a `trip_request` does not. Having a single table would require the `driver_id` to be nullable, which could lead to data inconsistency.
+- **Clearer State Management**: The status of a `trip_request` (e.g., `pending`, `searching`) is distinct from the status of a `trip` (e.g., `in_progress`, `completed`). Separating the tables allows for a clearer and more robust state machine for each entity.
+- **Scalability**: This separation allows for independent scaling of the `trip_requests` and `trips` tables. For example, we might want to archive old trip requests more aggressively than completed trips.
