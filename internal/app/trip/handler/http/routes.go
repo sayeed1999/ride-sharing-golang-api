@@ -3,10 +3,10 @@ package http
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/sayeed1999/ride-sharing-golang-api/config"
-	auth "github.com/sayeed1999/ride-sharing-golang-api/internal/app/auth" // Import auth module
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/app/trip/repository"
 	trippostgres "github.com/sayeed1999/ride-sharing-golang-api/internal/app/trip/repository/postgres"
 	tripusecase "github.com/sayeed1999/ride-sharing-golang-api/internal/app/trip/usecase"
+	"github.com/sayeed1999/ride-sharing-golang-api/pkg/middleware"
 	"gorm.io/gorm"
 )
 
@@ -24,24 +24,22 @@ func newHTTPHandlers(db *gorm.DB, cfg *config.Config) *Handlers {
 	var drvRepo repository.DriverRepository = &trippostgres.DriverRepo{DB: db}
 	var trRepo repository.TripRequestRepository = &trippostgres.TripRequestRepo{DB: db}
 
-	// Auth Usecase (shared)
-	registerUC := auth.NewRegisterUsecase(db, cfg)
-
 	// Usecases
 	signupUC := &tripusecase.CustomerSignupUsecase{
 		CustomerRepo: custRepo,
-		AuthRegister: registerUC,
+		AuthRegister: nil, // AuthRegister is not directly used here, it's passed to CustomerSignupUsecase
 	}
 	driverSignupUC := &tripusecase.DriverSignupUsecase{
 		DriverRepo:   drvRepo,
-		AuthRegister: registerUC,
+		AuthRegister: nil, // AuthRegister is not directly used here, it's passed to DriverSignupUsecase
 	}
 	requestTripUC := &tripusecase.RequestTripUsecase{TripRequestRepo: trRepo}
+	customerCancelTripUC := &tripusecase.CustomerCancelTrip{TripRequestRepo: trRepo}
 
 	// Handlers
 	custHandler := NewCustomerHandler(signupUC)
 	drvHandler := NewDriverHandler(driverSignupUC)
-	tripRequestHandler := NewTripRequestHandler(requestTripUC)
+	tripRequestHandler := NewTripRequestHandler(requestTripUC, customerCancelTripUC, custRepo)
 
 	return &Handlers{
 		CustomerHandler:    custHandler,
@@ -68,5 +66,6 @@ func RegisterAllHTTPRoutes(rg *gin.RouterGroup, db *gorm.DB, cfg *config.Config)
 	tripRequests := rg.Group("/trip-requests")
 	{
 		tripRequests.POST("/request", handlers.TripRequestHandler.RequestTrip)
+		tripRequests.DELETE("/:tripID", middleware.AuthMiddleware(cfg.Auth.JWTSecret), handlers.TripRequestHandler.CancelTripRequest)
 	}
 }

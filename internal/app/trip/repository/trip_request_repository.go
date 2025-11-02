@@ -9,4 +9,5 @@ type TripRequestRepository interface {
 	Create(tr *domain.TripRequest) (*domain.TripRequest, error)
 	FindByID(id uuid.UUID) (*domain.TripRequest, error)
 	Update(tr *domain.TripRequest) (*domain.TripRequest, error)
+	UpdateTripRequestStatus(tripID uuid.UUID, status domain.TripRequestStatus) error
 }

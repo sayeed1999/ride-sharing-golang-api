@@ -1,6 +1,8 @@
 package postgres
 
 import (
+	"time"
+
 	"github.com/google/uuid"
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/app/trip/domain"
 	"gorm.io/gorm"
@@ -30,4 +32,8 @@ func (r *TripRequestRepo) Update(tr *domain.TripRequest) (*domain.TripRequest, e
 		return nil, err
 	}
 	return tr, nil
+}
+
+func (r *TripRequestRepo) UpdateTripRequestStatus(tripID uuid.UUID, status domain.TripRequestStatus) error {
+	return r.DB.Model(&domain.TripRequest{}).Where("id = ?", tripID).Updates(map[string]interface{}{"status": status, "updated_at": time.Now()}).Error
 }
