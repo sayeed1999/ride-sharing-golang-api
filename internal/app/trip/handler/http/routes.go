@@ -13,3 +13,8 @@ func RegisterCustomerRoutes(rg *gin.RouterGroup, h *CustomerHandler) {
 func RegisterDriverRoutes(rg *gin.RouterGroup, h *DriverHandler) {
 	rg.POST("/signup", h.DriverSignup)
 }
+
+// RegisterTripRequestRoutes registers routes for trip request-related handlers.
+func RegisterTripRequestRoutes(rg *gin.RouterGroup, h *TripRequestHandler) {
+	rg.POST("/request", h.RequestTrip)
+}

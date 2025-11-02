@@ -45,4 +45,12 @@ func ExposeRoutes(rg *gin.RouterGroup, db *gorm.DB, cfg *config.Config) {
 	drvHandler := triphttp.NewDriverHandler(driverSignupUC)
 	drivers := rg.Group("/drivers")
 	triphttp.RegisterDriverRoutes(drivers, drvHandler)
+
+	// --- Trip Request wiring ---
+	tripRequestRepo := postgres.NewTripRequestRepo(db)
+	var trRepo repository.TripRequestRepository = tripRequestRepo
+	requestTripUC := usecase.NewRequestTripUsecase(trRepo)
+	tripRequestHandler := triphttp.NewTripRequestHandler(requestTripUC)
+	tripRequests := rg.Group("/trip-requests")
+	triphttp.RegisterTripRequestRoutes(tripRequests, tripRequestHandler)
 }
