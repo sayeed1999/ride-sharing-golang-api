@@ -1,0 +1,197 @@
+package e2e
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"testing"
+
+	"github.com/sayeed1999/ride-sharing-golang-api/internal/app/trip/domain"
+	"github.com/sayeed1999/ride-sharing-golang-api/tests/e2e/setup"
+	"github.com/stretchr/testify/require"
+)
+
+func TestCancelTrip_E2E(t *testing.T) {
+	ctx := context.Background()
+	testApp := setup.NewTestApp(ctx, t, true)
+	defer testApp.CleanUp(ctx, t)
+
+	email := "e2e-customer-cancel@example.com"
+	password := "pass123"
+	name := "E2E Customer Cancel"
+
+	// 1. Signup as customer
+	signupPayload := map[string]string{"email": email, "name": name, "password": password}
+	w := doJSONRequest(t, testApp.Router(), http.MethodPost, "/customers/signup", signupPayload)
+	assertAndLogErrors(t, w, http.StatusCreated)
+
+	// 2. Login as customer to get JWT token
+	loginPayload := map[string]string{"email": email, "password": password}
+	w = doJSONRequest(t, testApp.Router(), http.MethodPost, "/login", loginPayload)
+	assertAndLogErrors(t, w, http.StatusOK)
+
+	var loginResponse struct {
+		Token string `json:"token"`
+	}
+	err := json.Unmarshal(w.Body.Bytes(), &loginResponse)
+	require.NoError(t, err)
+	require.NotEmpty(t, loginResponse.Token, "JWT token should not be empty")
+	jwtToken := loginResponse.Token
+
+	// Extract customer ID
+	var customer struct {
+		ID string `json:"id"`
+	}
+	err = testApp.DB.Raw("SELECT id FROM trip.customers WHERE email = ?", email).Scan(&customer.ID).Error
+	require.NoError(t, err)
+	require.NotEmpty(t, customer.ID, "Customer ID should not be empty")
+
+	// 3. Request a trip
+	tripRequestPayload := map[string]interface{}{
+		"customer_id": customer.ID,
+		"origin":      "789 Pine St",
+		"destination": "101 Elm Ave",
+	}
+	w = doJSONRequest(t, testApp.Router(), http.MethodPost, "/trip-requests/request", tripRequestPayload)
+	assertAndLogErrors(t, w, http.StatusCreated)
+
+	var tripRequestResponse struct {
+		TripRequest struct {
+			ID string `json:"id"`
+		} `json:"trip_request"`
+	}
+	err = json.Unmarshal(w.Body.Bytes(), &tripRequestResponse)
+	require.NoError(t, err)
+	require.NotEmpty(t, tripRequestResponse.TripRequest.ID, "Trip Request ID should not be empty")
+	tripID := tripRequestResponse.TripRequest.ID
+
+	// 4. Cancel the trip
+	w = doJSONRequestWithAuth(t, testApp.Router(), http.MethodDelete, fmt.Sprintf("/trip-requests/%s", tripID), nil, jwtToken)
+	assertAndLogErrors(t, w, http.StatusNoContent)
+
+	// 5. Verify trip status in DB
+	var tripRequestRec domain.TripRequest
+	err = testApp.DB.Raw("SELECT status FROM trip.trip_requests WHERE id = ?", tripID).Scan(&tripRequestRec.Status).Error
+	require.NoError(t, err)
+	require.Equal(t, domain.CUSTOMER_CANCELED, tripRequestRec.Status)
+}
+
+func TestCancelTrip_Validation_E2E(t *testing.T) {
+	ctx := context.Background()
+	testApp := setup.NewTestApp(ctx, t, true)
+	defer testApp.CleanUp(ctx, t)
+
+	// 1. Signup and login to get a valid token
+	email := "e2e-customer-cancel-validation@example.com"
+	password := "pass123"
+	name := "E2E Customer Cancel Validation"
+
+	signupPayload := map[string]string{"email": email, "name": name, "password": password}
+	w := doJSONRequest(t, testApp.Router(), http.MethodPost, "/customers/signup", signupPayload)
+	assertAndLogErrors(t, w, http.StatusCreated)
+
+	loginPayload := map[string]string{"email": email, "password": password}
+	w = doJSONRequest(t, testApp.Router(), http.MethodPost, "/login", loginPayload)
+	assertAndLogErrors(t, w, http.StatusOK)
+
+	var loginResponse struct {
+		Token string `json:"token"`
+	}
+	err := json.Unmarshal(w.Body.Bytes(), &loginResponse)
+	require.NoError(t, err)
+	require.NotEmpty(t, loginResponse.Token, "JWT token should not be empty")
+	jwtToken := loginResponse.Token
+
+	// 2. Test with invalid trip ID
+	w = doJSONRequestWithAuth(t, testApp.Router(), http.MethodDelete, "/trip-requests/invalid-trip-id", nil, jwtToken)
+	assertAndLogErrors(t, w, http.StatusBadRequest)
+
+	// 3. Create a trip to get a valid trip ID
+	var customer struct {
+		ID string `json:"id"`
+	}
+	err = testApp.DB.Raw("SELECT id FROM trip.customers WHERE email = ?", email).Scan(&customer.ID).Error
+	require.NoError(t, err)
+	require.NotEmpty(t, customer.ID, "Customer ID should not be empty")
+
+	tripRequestPayload := map[string]interface{}{
+		"customer_id": customer.ID,
+		"origin":      "789 Pine St",
+		"destination": "101 Elm Ave",
+	}
+	w = doJSONRequest(t, testApp.Router(), http.MethodPost, "/trip-requests/request", tripRequestPayload)
+	assertAndLogErrors(t, w, http.StatusCreated)
+
+	var tripRequestResponse struct {
+		TripRequest struct {
+			ID string `json:"id"`
+		} `json:"trip_request"`
+	}
+	err = json.Unmarshal(w.Body.Bytes(), &tripRequestResponse)
+	require.NoError(t, err)
+	require.NotEmpty(t, tripRequestResponse.TripRequest.ID, "Trip Request ID should not be empty")
+	tripID := tripRequestResponse.TripRequest.ID
+
+	// 4. Test with invalid JWT token
+	w = doJSONRequestWithAuth(t, testApp.Router(), http.MethodDelete, fmt.Sprintf("/trip-requests/%s", tripID), nil, "invalid-token")
+	assertAndLogErrors(t, w, http.StatusUnauthorized)
+}
+
+func TestCancelTrip_Unauthorized(t *testing.T) {
+	ctx := context.Background()
+	testApp := setup.NewTestApp(ctx, t, true)
+	defer testApp.CleanUp(ctx, t)
+
+	// 1. Create user A and their trip
+	userAEmail := "userA@example.com"
+	userAPassword := "pass123"
+	signupPayloadA := map[string]string{"email": userAEmail, "name": "User A", "password": userAPassword}
+	w := doJSONRequest(t, testApp.Router(), http.MethodPost, "/customers/signup", signupPayloadA)
+	assertAndLogErrors(t, w, http.StatusCreated)
+
+	var customerA struct {
+		ID string `json:"id"`
+	}
+	err := testApp.DB.Raw("SELECT id FROM trip.customers WHERE email = ?", userAEmail).Scan(&customerA.ID).Error
+	require.NoError(t, err)
+
+	tripRequestPayload := map[string]interface{}{
+		"customer_id": customerA.ID,
+		"origin":      "123 Main St",
+		"destination": "456 Oak Ave",
+	}
+	w = doJSONRequest(t, testApp.Router(), http.MethodPost, "/trip-requests/request", tripRequestPayload)
+	assertAndLogErrors(t, w, http.StatusCreated)
+
+	var tripRequestResponse struct {
+		TripRequest struct {
+			ID string `json:"id"`
+		} `json:"trip_request"`
+	}
+	err = json.Unmarshal(w.Body.Bytes(), &tripRequestResponse)
+	require.NoError(t, err)
+	tripID := tripRequestResponse.TripRequest.ID
+
+	// 2. Create user B and get their token
+	userBEmail := "userB@example.com"
+	userBPassword := "pass123"
+	signupPayloadB := map[string]string{"email": userBEmail, "name": "User B", "password": userBPassword}
+	w = doJSONRequest(t, testApp.Router(), http.MethodPost, "/customers/signup", signupPayloadB)
+	assertAndLogErrors(t, w, http.StatusCreated)
+
+	loginPayloadB := map[string]string{"email": userBEmail, "password": userBPassword}
+	w = doJSONRequest(t, testApp.Router(), http.MethodPost, "/login", loginPayloadB)
+	assertAndLogErrors(t, w, http.StatusOK)
+
+	var loginResponseB struct {
+		Token string `json:"token"`
+	}
+	err = json.Unmarshal(w.Body.Bytes(), &loginResponseB)
+	require.NoError(t, err)
+	jwtTokenB := loginResponseB.Token
+
+	// 3. User B attempts to cancel User A's trip
+	w = doJSONRequestWithAuth(t, testApp.Router(), http.MethodDelete, fmt.Sprintf("/trip-requests/%s", tripID), nil, jwtTokenB)
+	assertAndLogErrors(t, w, http.StatusBadRequest)
+}

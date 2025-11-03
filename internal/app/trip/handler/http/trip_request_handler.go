@@ -16,9 +16,9 @@ type TripRequestRequest struct {
 }
 
 type TripRequestHandler struct {
-	RequestTripUC      *usecase.RequestTripUsecase
+	RequestTripUC        *usecase.RequestTripUsecase
 	CustomerCancelTripUC *usecase.CustomerCancelTrip
-	CustomerRepo       repository.CustomerRepository
+	CustomerRepo         repository.CustomerRepository
 }
 
 func NewTripRequestHandler(requestTripUC *usecase.RequestTripUsecase, customerCancelTripUC *usecase.CustomerCancelTrip, customerRepo repository.CustomerRepository) *TripRequestHandler {

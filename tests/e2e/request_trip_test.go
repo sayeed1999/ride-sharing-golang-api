@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -57,69 +56,38 @@ func TestRequestTrip_E2E(t *testing.T) {
 	require.Equal(t, domain.NO_DRIVER_FOUND, tripRequestRec.Status)
 }
 
-func TestCancelTrip_E2E(t *testing.T) {
+func TestRequestTrip_Validation_E2E(t *testing.T) {
 	ctx := context.Background()
 	testApp := setup.NewTestApp(ctx, t, true)
 	defer testApp.CleanUp(ctx, t)
 
-	email := "e2e-customer-cancel@example.com"
-	password := "pass123"
-	name := "E2E Customer Cancel"
-
-	// 1. Signup as customer
-	signupPayload := map[string]string{"email": email, "name": name, "password": password}
-	w := doJSONRequest(t, testApp.Router(), http.MethodPost, "/customers/signup", signupPayload)
-	assertAndLogErrors(t, w, http.StatusCreated)
-
-	// 2. Login as customer to get JWT token
-	loginPayload := map[string]string{"email": email, "password": password}
-	w = doJSONRequest(t, testApp.Router(), http.MethodPost, "/login", loginPayload)
-	assertAndLogErrors(t, w, http.StatusOK)
-
-	var loginResponse struct {
-		Token string `json:"token"`
+	cases := []struct {
+		name    string
+		payload map[string]interface{}
+	}{
+		{
+			name: "invalid customer id",
+			payload: map[string]interface{}{
+				"customer_id": "invalid-uuid",
+				"origin":      "123 Main St",
+				"destination": "456 Oak Ave",
+			},
+		},
+		{
+			name: "missing origin",
+			payload: map[string]interface{}{
+				"customer_id": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+				"destination": "456 Oak Ave",
+			},
+		},
 	}
-	err := json.Unmarshal(w.Body.Bytes(), &loginResponse)
-	require.NoError(t, err)
-	require.NotEmpty(t, loginResponse.Token, "JWT token should not be empty")
-	jwtToken := loginResponse.Token
 
-	// Extract customer ID
-	var customer struct {
-		ID string `json:"id"`
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			w := doJSONRequest(t, testApp.Router(), http.MethodPost, "/trip-requests/request", tc.payload)
+			assertAndLogErrors(t, w, http.StatusBadRequest)
+		})
 	}
-	err = testApp.DB.Raw("SELECT id FROM trip.customers WHERE email = ?", email).Scan(&customer.ID).Error
-	require.NoError(t, err)
-	require.NotEmpty(t, customer.ID, "Customer ID should not be empty")
-
-	// 3. Request a trip
-	tripRequestPayload := map[string]interface{}{
-		"customer_id": customer.ID,
-		"origin":      "789 Pine St",
-		"destination": "101 Elm Ave",
-	}
-	w = doJSONRequest(t, testApp.Router(), http.MethodPost, "/trip-requests/request", tripRequestPayload)
-	assertAndLogErrors(t, w, http.StatusCreated)
-
-	var tripRequestResponse struct {
-		TripRequest struct {
-			ID string `json:"id"`
-		} `json:"trip_request"`
-	}
-	err = json.Unmarshal(w.Body.Bytes(), &tripRequestResponse)
-	require.NoError(t, err)
-	require.NotEmpty(t, tripRequestResponse.TripRequest.ID, "Trip Request ID should not be empty")
-	tripID := tripRequestResponse.TripRequest.ID
-
-	// 4. Cancel the trip
-	w = doJSONRequestWithAuth(t, testApp.Router(), http.MethodDelete, fmt.Sprintf("/trip-requests/%s", tripID), nil, jwtToken)
-	assertAndLogErrors(t, w, http.StatusNoContent)
-
-	// 5. Verify trip status in DB
-	var tripRequestRec domain.TripRequest
-	err = testApp.DB.Raw("SELECT status FROM trip.trip_requests WHERE id = ?", tripID).Scan(&tripRequestRec.Status).Error
-	require.NoError(t, err)
-	require.Equal(t, domain.CUSTOMER_CANCELED, tripRequestRec.Status)
 }
 
 // doJSONRequestWithAuth is a helper to make JSON requests with an Authorization header

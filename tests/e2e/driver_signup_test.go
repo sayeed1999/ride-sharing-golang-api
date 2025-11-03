@@ -74,3 +74,71 @@ func TestDriverSignup_E2E(t *testing.T) {
 		t.Errorf("expected driver in auth schema")
 	}
 }
+
+func TestDriverSignup_Validation_E2E(t *testing.T) {
+	ctx := context.Background()
+	testApp := setup.NewTestApp(ctx, t, true)
+	defer testApp.CleanUp(ctx, t)
+
+	// Signup as driver to test duplicate email
+	signupPayload := map[string]string{
+		"email":                "duplicate-driver@example.com",
+		"name":                 "E2E Driver",
+		"password":             "pass123",
+		"vehicle_type":         "car",
+		"vehicle_registration": "ABC-123",
+	}
+	w := doJSONRequest(t, testApp.Router(), http.MethodPost, "/drivers/signup", signupPayload)
+	assertAndLogErrors(t, w, http.StatusCreated)
+
+	cases := []struct {
+		name    string
+		payload map[string]string
+	}{
+		{
+			name: "duplicate email",
+			payload: map[string]string{
+				"email":                "duplicate-driver@example.com",
+				"name":                 "E2E Driver",
+				"password":             "pass123",
+				"vehicle_type":         "car",
+				"vehicle_registration": "ABC-123",
+			},
+		},
+		{
+			name: "invalid email",
+			payload: map[string]string{
+				"email":                "e2e-driver",
+				"name":                 "E2E Driver",
+				"password":             "pass123",
+				"vehicle_type":         "car",
+				"vehicle_registration": "ABC-123",
+			},
+		},
+		{
+			name: "missing name",
+			payload: map[string]string{
+				"email":                "e2e-driver-no-name@example.com",
+				"password":             "pass123",
+				"vehicle_type":         "car",
+				"vehicle_registration": "ABC-123",
+			},
+		},
+		{
+			name: "missing password",
+			payload: map[string]string{
+				"email":                "e2e-driver-no-password@example.com",
+				"name":                 "E2E Driver",
+				"vehicle_type":         "car",
+				"vehicle_registration": "ABC-123",
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			w := doJSONRequest(t, testApp.Router(), http.MethodPost, "/drivers/signup", tc.payload)
+			assertAndLogErrors(t, w, http.StatusBadRequest)
+		})
+	}
+}

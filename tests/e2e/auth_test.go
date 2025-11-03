@@ -29,6 +29,11 @@ func TestRegisterAndLogin_E2E(t *testing.T) {
 	w = doJSONRequest(t, testApp.Router(), http.MethodPost, "/login", badLogin)
 	assertAndLogErrors(t, w, http.StatusUnauthorized)
 
+	// Login with non-existent email (should fail)
+	badLogin = map[string]string{"email": "non-existent-user@example.com", "password": "pass123"}
+	w = doJSONRequest(t, testApp.Router(), http.MethodPost, "/login", badLogin)
+	assertAndLogErrors(t, w, http.StatusUnauthorized)
+
 	// Login with correct password (last)
 	loginPayload := map[string]string{"email": "e2e-user@example.com", "password": "pass123"}
 	w = doJSONRequest(t, testApp.Router(), http.MethodPost, "/login", loginPayload)
@@ -39,6 +44,52 @@ func TestRegisterAndLogin_E2E(t *testing.T) {
 
 	// one-liner helper validates token and subject
 	assertValidJWT(t, tokenStr, "test_jwt_secret_change_me", "e2e-user@example.com")
+}
+
+func TestRegisterWithDuplicateEmail_E2E(t *testing.T) {
+	ctx := context.Background()
+	testApp := setup.NewTestApp(ctx, t, false)
+	defer testApp.CleanUp(ctx, t)
+
+	// Register user
+	regPayload := map[string]string{"email": "duplicate-user@example.com", "password": "pass123", "role": ""}
+	w := doJSONRequest(t, testApp.Router(), http.MethodPost, "/register", regPayload)
+	assertAndLogErrors(t, w, http.StatusCreated)
+
+	// Register with the same email again
+	w = doJSONRequest(t, testApp.Router(), http.MethodPost, "/register", regPayload)
+	assertAndLogErrors(t, w, http.StatusBadRequest)
+}
+
+func TestRegister_Validation_E2E(t *testing.T) {
+	ctx := context.Background()
+	testApp := setup.NewTestApp(ctx, t, false)
+	defer testApp.CleanUp(ctx, t)
+
+	cases := []struct {
+		name    string
+		payload map[string]string
+	}{
+		{
+			name:    "invalid email",
+			payload: map[string]string{"email": "e2e-user", "password": "pass123"},
+		},
+		{
+			name:    "weak password",
+			payload: map[string]string{"email": "e2e-user@example.com", "password": "p"},
+		},
+		{
+			name:    "empty email",
+			payload: map[string]string{"email": "", "password": "pass123"},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			w := doJSONRequest(t, testApp.Router(), http.MethodPost, "/register", tc.payload)
+			assertAndLogErrors(t, w, http.StatusBadRequest)
+		})
+	}
 }
 
 func assertAndLogErrors(t testing.TB, w *httptest.ResponseRecorder, expectedHttpStatus int) {

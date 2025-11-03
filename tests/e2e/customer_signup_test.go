@@ -45,3 +45,43 @@ func TestCustomerSignupAndLogin_E2E(t *testing.T) {
 	tokenStr := extractTokenFromResponse(t, w)
 	assertValidJWT(t, tokenStr, "test_jwt_secret_change_me", email)
 }
+
+func TestCustomerSignup_Validation_E2E(t *testing.T) {
+	ctx := context.Background()
+	testApp := setup.NewTestApp(ctx, t, true)
+	defer testApp.CleanUp(ctx, t)
+
+	// Signup as customer to test duplicate email
+	signupPayload := map[string]string{"email": "duplicate-customer@example.com", "name": "E2E Customer", "password": "pass123"}
+	w := doJSONRequest(t, testApp.Router(), http.MethodPost, "/customers/signup", signupPayload)
+	assertAndLogErrors(t, w, http.StatusCreated)
+
+	cases := []struct {
+		name    string
+		payload map[string]string
+	}{
+		{
+			name:    "duplicate email",
+			payload: map[string]string{"email": "duplicate-customer@example.com", "name": "E2E Customer", "password": "pass123"},
+		},
+		{
+			name:    "invalid email",
+			payload: map[string]string{"email": "e2e-customer", "name": "E2E Customer", "password": "pass123"},
+		},
+		{
+			name:    "missing name",
+			payload: map[string]string{"email": "e2e-customer-no-name@example.com", "password": "pass123"},
+		},
+		{
+			name:    "missing password",
+			payload: map[string]string{"email": "e2e-customer-no-password@example.com", "name": "E2E Customer"},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			w := doJSONRequest(t, testApp.Router(), http.MethodPost, "/customers/signup", tc.payload)
+			assertAndLogErrors(t, w, http.StatusBadRequest)
+		})
+	}
+}
