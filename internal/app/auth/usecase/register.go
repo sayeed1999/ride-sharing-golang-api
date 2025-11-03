@@ -14,29 +14,29 @@ type RegisterUsecase struct {
 	RequireRoleOnRegistration bool
 }
 
-func (uc *RegisterUsecase) Register(email, pass, role string) error {
+func (uc *RegisterUsecase) Register(email, pass, role string) (*domain.User, error) {
 	role = strings.TrimSpace(role)
 
 	// Validate role requirement if feature flag is enabled
 	if uc.RequireRoleOnRegistration {
 		if role == "" {
-			return errors.New("role is required for registration")
+			return nil, errors.New("role is required for registration")
 		}
 	}
 
 	// Check existing user
 	if _, err := uc.UserRepo.FindByEmail(email); err == nil {
-		return errors.New("user already exists")
+		return nil, errors.New("user already exists")
 	}
 
 	// Generate salt + hash
 	salt, err := password.GenerateSalt()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	hash, err := password.HashPassword(pass, salt)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// Create user
@@ -48,15 +48,16 @@ func (uc *RegisterUsecase) Register(email, pass, role string) error {
 
 	newUser, err := uc.UserRepo.CreateUser(user)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// Assign role if provided (regardless of feature flag)
 	if role != "" {
 		if _, err := uc.UserRepo.AssignRole(newUser.ID, role); err != nil {
-			return err
+			// TODO: Rollback user creation on role assignment failure?
+			return nil, err
 		}
 	}
 
-	return nil
+	return newUser, nil
 }

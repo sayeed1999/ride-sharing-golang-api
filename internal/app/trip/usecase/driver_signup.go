@@ -10,39 +10,44 @@ import (
 
 // DriverSignupUsecase handles driver signups including vehicle details.
 type DriverSignupUsecase struct {
-	DriverRepo   repository.DriverRepository
-	AuthRegister *authusecase.RegisterUsecase
+	DriverRepo     repository.DriverRepository
+	AuthRegister   *authusecase.RegisterUsecase
+	AuthDeleteUser *authusecase.DeleteUserUsecase // For compensating actions
 }
 
-// Signup registers a driver record and creates a corresponding auth user
-// with role "driver". VehicleType should be one of the seeded values.
+// Signup registers an auth user and then creates a corresponding driver record.
 func (uc *DriverSignupUsecase) Signup(email, name, password, vehicleType, vehicleRegistration string) (*tripdomain.Driver, error) {
 	if email == "" {
 		return nil, errors.New("email is required")
 	}
 
-	// validate & map vehicle type to enum code and canonical name
+	// 1. Register auth user first
+	authUser, err := uc.AuthRegister.Register(email, password, "driver")
+	if err != nil {
+		return nil, err
+	}
+
+	// 2. Validate vehicle type
 	ve, _, ok := tripdomain.LookupVehicleEnum(vehicleType)
 	if !ok {
+		// Compensating action: delete the created auth user
+		_ = uc.AuthDeleteUser.DeleteUser(authUser.ID)
 		return nil, errors.New("invalid vehicle type")
 	}
 
+	// 3. Create the driver record with the new AuthUserID
 	driver := &tripdomain.Driver{
 		Email:               email,
 		Name:                name,
+		AuthUserID:          &authUser.ID,
 		VehicleTypeEnumCode: int(ve),
 		VehicleRegistration: vehicleRegistration,
 	}
 
 	created, err := uc.DriverRepo.CreateDriver(driver)
 	if err != nil {
-		return nil, err
-	}
-
-	// register auth user with hardcoded role 'driver'
-	if err := uc.AuthRegister.Register(email, password, "driver"); err != nil {
-		// compensating delete
-		_ = uc.DriverRepo.DeleteDriver(created.ID)
+		// Compensating action: delete the created auth user
+		_ = uc.AuthDeleteUser.DeleteUser(authUser.ID)
 		return nil, err
 	}
 

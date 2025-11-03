@@ -31,3 +31,14 @@ func NewRegisterUsecase(db *gorm.DB, cfg *config.Config) *usecase.RegisterUsecas
 
 	return registerUC
 }
+
+// NewDeleteUserUsecase builds and returns a DeleteUserUsecase instance.
+func NewDeleteUserUsecase(db *gorm.DB) *usecase.DeleteUserUsecase {
+	var userRepo repository.UserRepository = &postgres.UserRepo{DB: db}
+
+	deleteUC := &usecase.DeleteUserUsecase{
+		UserRepo: userRepo,
+	}
+
+	return deleteUC
+}

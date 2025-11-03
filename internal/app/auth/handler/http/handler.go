@@ -26,7 +26,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		return
 	}
 
-	if err := h.RegisterUC.Register(req.Email, req.Password, req.Role); err != nil {
+	if _, err := h.RegisterUC.Register(req.Email, req.Password, req.Role); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}

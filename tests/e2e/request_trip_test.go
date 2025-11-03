@@ -104,7 +104,7 @@ func TestCancelTrip_E2E(t *testing.T) {
 	var tripRequestResponse struct {
 		TripRequest struct {
 			ID string `json:"id"`
-		}
+		} `json:"trip_request"`
 	}
 	err = json.Unmarshal(w.Body.Bytes(), &tripRequestResponse)
 	require.NoError(t, err)

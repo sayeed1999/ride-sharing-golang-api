@@ -60,3 +60,11 @@ func (r *UserRepo) AssignRole(userID uuid.UUID, roleName string) (*domain.UserRo
 
 	return &userRole, nil
 }
+
+func (r *UserRepo) DeleteUser(userID uuid.UUID) error {
+	// Also deletes associated user roles due to CASCADE constraint
+	if err := r.DB.Delete(&domain.User{}, userID).Error; err != nil {
+		return err
+	}
+	return nil
+}

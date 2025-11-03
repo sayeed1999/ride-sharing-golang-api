@@ -3,6 +3,7 @@ package http
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/sayeed1999/ride-sharing-golang-api/config"
+	"github.com/sayeed1999/ride-sharing-golang-api/internal/app/auth"
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/app/trip/repository"
 	trippostgres "github.com/sayeed1999/ride-sharing-golang-api/internal/app/trip/repository/postgres"
 	tripusecase "github.com/sayeed1999/ride-sharing-golang-api/internal/app/trip/usecase"
@@ -25,13 +26,18 @@ func newHTTPHandlers(db *gorm.DB, cfg *config.Config) *Handlers {
 	var trRepo repository.TripRequestRepository = &trippostgres.TripRequestRepo{DB: db}
 
 	// Usecases
+	authRegisterUC := auth.NewRegisterUsecase(db, cfg)
+	authDeleteUC := auth.NewDeleteUserUsecase(db)
+
 	signupUC := &tripusecase.CustomerSignupUsecase{
-		CustomerRepo: custRepo,
-		AuthRegister: nil, // AuthRegister is not directly used here, it's passed to CustomerSignupUsecase
+		CustomerRepo:   custRepo,
+		AuthRegister:   authRegisterUC,
+		AuthDeleteUser: authDeleteUC,
 	}
 	driverSignupUC := &tripusecase.DriverSignupUsecase{
-		DriverRepo:   drvRepo,
-		AuthRegister: nil, // AuthRegister is not directly used here, it's passed to DriverSignupUsecase
+		DriverRepo:     drvRepo,
+		AuthRegister:   authRegisterUC,
+		AuthDeleteUser: authDeleteUC,
 	}
 	requestTripUC := &tripusecase.RequestTripUsecase{TripRequestRepo: trRepo}
 	customerCancelTripUC := &tripusecase.CustomerCancelTrip{TripRequestRepo: trRepo}

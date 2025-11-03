@@ -97,6 +97,17 @@ func (m *MockUserRepository) AssignRole(userID uuid.UUID, roleName string) (*dom
 	}, nil
 }
 
+// DeleteUser removes a user from the mock by ID
+func (m *MockUserRepository) DeleteUser(userID uuid.UUID) error {
+	for i, user := range m.users {
+		if user.ID == userID {
+			m.users = append(m.users[:i], m.users[i+1:]...)
+			return nil
+		}
+	}
+	return errors.New("user not found")
+}
+
 // GetUserCount returns the number of users
 func (m *MockUserRepository) GetUserCount() int {
 	return len(m.users)

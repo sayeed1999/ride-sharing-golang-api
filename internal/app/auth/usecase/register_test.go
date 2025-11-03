@@ -18,7 +18,7 @@ func TestRegisterUsecase_AddNewUser(t *testing.T) {
 	initialUserCount := mockRepo.GetUserCount()
 
 	// Test adding a new user
-	err := registerUC.Register("newuser@example.com", "password123", "customer")
+	_, err := registerUC.Register("newuser@example.com", "password123", "customer")
 
 	// Assert
 	if err != nil {
@@ -49,7 +49,7 @@ func TestRegisterUsecase_AddExistingUser(t *testing.T) {
 	}
 
 	// Test adding existing user (john@example.com is in default users)
-	err := registerUC.Register("john@example.com", "password123", "customer")
+	_, err := registerUC.Register("john@example.com", "password123", "customer")
 
 	// Assert
 	if err == nil {
@@ -74,7 +74,7 @@ func TestRegisterUsecase_RoleRequiredWhenFeatureEnabled(t *testing.T) {
 	}
 
 	// Test registration without role
-	err := registerUC.Register("newuser@example.com", "password123", "")
+	_, err := registerUC.Register("newuser@example.com", "password123", "")
 
 	// Assert
 	if err == nil {
@@ -85,7 +85,7 @@ func TestRegisterUsecase_RoleRequiredWhenFeatureEnabled(t *testing.T) {
 	}
 
 	// Test registration with empty/whitespace role
-	err = registerUC.Register("newuser2@example.com", "password123", "   ")
+	_, err = registerUC.Register("newuser2@example.com", "password123", "   ")
 
 	// Assert
 	if err == nil {
@@ -107,7 +107,7 @@ func TestRegisterUsecase_RoleNotRequiredWhenFeatureDisabled(t *testing.T) {
 	initialUserCount := mockRepo.GetUserCount()
 
 	// Test registration without role (should succeed)
-	err := registerUC.Register("newuser@example.com", "password123", "")
+	_, err := registerUC.Register("newuser@example.com", "password123", "")
 
 	// Assert
 	if err != nil {
@@ -138,7 +138,7 @@ func TestRegisterUsecase_RoleAssignmentWhenFeatureEnabled(t *testing.T) {
 	}
 
 	// Test registration with valid role
-	err := registerUC.Register("newuser@example.com", "password123", "customer")
+	_, err := registerUC.Register("newuser@example.com", "password123", "customer")
 
 	// Assert
 	if err != nil {
@@ -164,7 +164,7 @@ func TestRegisterUsecase_RoleAssignmentWhenFeatureDisabled(t *testing.T) {
 	}
 
 	// Test registration with role (should succeed and assign role)
-	err := registerUC.Register("newuser@example.com", "password123", "customer")
+	_, err := registerUC.Register("newuser@example.com", "password123", "customer")
 
 	// Assert
 	if err != nil {
