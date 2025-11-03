@@ -1,7 +1,6 @@
 package e2e
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -10,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/golang-jwt/jwt/v5"
+	testhelper "github.com/sayeed1999/ride-sharing-golang-api/pkg/test_helper"
 	"github.com/sayeed1999/ride-sharing-golang-api/tests/e2e/setup"
 	"github.com/stretchr/testify/require"
 )
@@ -21,23 +21,23 @@ func TestRegisterAndLogin_E2E(t *testing.T) {
 
 	// Register user
 	regPayload := map[string]string{"email": "e2e-user@example.com", "password": "pass123", "role": ""}
-	w := doJSONRequest(t, testApp.Router(), http.MethodPost, "/register", regPayload)
-	assertAndLogErrors(t, w, http.StatusCreated)
+	w := testhelper.DoJSONRequest(t, testApp.Router(), http.MethodPost, "/register", regPayload)
+	testhelper.AssertAndLogErrors(t, w, http.StatusCreated)
 
 	// Login with wrong password (should fail)
 	badLogin := map[string]string{"email": "e2e-user@example.com", "password": "wrong"}
-	w = doJSONRequest(t, testApp.Router(), http.MethodPost, "/login", badLogin)
-	assertAndLogErrors(t, w, http.StatusUnauthorized)
+	w = testhelper.DoJSONRequest(t, testApp.Router(), http.MethodPost, "/login", badLogin)
+	testhelper.AssertAndLogErrors(t, w, http.StatusUnauthorized)
 
 	// Login with non-existent email (should fail)
 	badLogin = map[string]string{"email": "non-existent-user@example.com", "password": "pass123"}
-	w = doJSONRequest(t, testApp.Router(), http.MethodPost, "/login", badLogin)
-	assertAndLogErrors(t, w, http.StatusUnauthorized)
+	w = testhelper.DoJSONRequest(t, testApp.Router(), http.MethodPost, "/login", badLogin)
+	testhelper.AssertAndLogErrors(t, w, http.StatusUnauthorized)
 
 	// Login with correct password (last)
 	loginPayload := map[string]string{"email": "e2e-user@example.com", "password": "pass123"}
-	w = doJSONRequest(t, testApp.Router(), http.MethodPost, "/login", loginPayload)
-	assertAndLogErrors(t, w, http.StatusOK)
+	w = testhelper.DoJSONRequest(t, testApp.Router(), http.MethodPost, "/login", loginPayload)
+	testhelper.AssertAndLogErrors(t, w, http.StatusOK)
 
 	// verify returned token is a valid JWT signed with the test secret
 	tokenStr := extractTokenFromResponse(t, w)
@@ -53,12 +53,12 @@ func TestRegisterWithDuplicateEmail_E2E(t *testing.T) {
 
 	// Register user
 	regPayload := map[string]string{"email": "duplicate-user@example.com", "password": "pass123", "role": ""}
-	w := doJSONRequest(t, testApp.Router(), http.MethodPost, "/register", regPayload)
-	assertAndLogErrors(t, w, http.StatusCreated)
+	w := testhelper.DoJSONRequest(t, testApp.Router(), http.MethodPost, "/register", regPayload)
+	testhelper.AssertAndLogErrors(t, w, http.StatusCreated)
 
 	// Register with the same email again
-	w = doJSONRequest(t, testApp.Router(), http.MethodPost, "/register", regPayload)
-	assertAndLogErrors(t, w, http.StatusBadRequest)
+	w = testhelper.DoJSONRequest(t, testApp.Router(), http.MethodPost, "/register", regPayload)
+	testhelper.AssertAndLogErrors(t, w, http.StatusBadRequest)
 }
 
 func TestRegister_Validation_E2E(t *testing.T) {
@@ -86,45 +86,10 @@ func TestRegister_Validation_E2E(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			w := doJSONRequest(t, testApp.Router(), http.MethodPost, "/register", tc.payload)
-			assertAndLogErrors(t, w, http.StatusBadRequest)
+			w := testhelper.DoJSONRequest(t, testApp.Router(), http.MethodPost, "/register", tc.payload)
+			testhelper.AssertAndLogErrors(t, w, http.StatusBadRequest)
 		})
 	}
-}
-
-func assertAndLogErrors(t testing.TB, w *httptest.ResponseRecorder, expectedHttpStatus int) {
-	t.Helper() // marks this function as a test helper
-
-	if w.Code != expectedHttpStatus {
-		t.Logf("Unexpected status code: %d\nBody: %s", w.Code, w.Body.String())
-	}
-
-	require.Equal(t, expectedHttpStatus, w.Code)
-}
-
-func assertAndLogErrorsWithBody(t testing.TB, w *httptest.ResponseRecorder, expectedHttpStatus int, expectedBody string) {
-	t.Helper() // marks this function as a test helper
-
-	if w.Code != expectedHttpStatus {
-		t.Logf("Unexpected status code: %d\nBody: %s", w.Code, w.Body.String())
-	}
-
-	require.Equal(t, expectedHttpStatus, w.Code)
-	require.Contains(t, w.Body.String(), expectedBody)
-}
-
-// doJSONRequest is a small helper to marshal payload and perform an HTTP request
-func doJSONRequest(t testing.TB, handler http.Handler, method, path string, payload interface{}) *httptest.ResponseRecorder {
-	t.Helper() // marks this function as a test helper
-
-	body, err := json.Marshal(payload)
-	require.NoError(t, err)
-
-	req := httptest.NewRequest(method, path, bytes.NewReader(body))
-	req.Header.Set("Content-Type", "application/json")
-	w := httptest.NewRecorder()
-	handler.ServeHTTP(w, req)
-	return w
 }
 
 // extractTokenFromResponse unmarshals the JSON response body and returns the "token" field.

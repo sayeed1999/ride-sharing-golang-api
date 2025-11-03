@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"testing"
 
+	testhelper "github.com/sayeed1999/ride-sharing-golang-api/pkg/test_helper"
 	"github.com/sayeed1999/ride-sharing-golang-api/tests/e2e/setup"
 	"github.com/stretchr/testify/require"
 )
@@ -23,8 +24,8 @@ func TestDriverSignup_E2E(t *testing.T) {
 		"password":             "pass123",
 		"vehicle_registration": "ABC-123",
 	}
-	w := doJSONRequest(t, testApp.Router(), http.MethodPost, "/drivers/signup", signupPayload)
-	assertAndLogErrors(t, w, http.StatusBadRequest)
+	w := testhelper.DoJSONRequest(t, testApp.Router(), http.MethodPost, "/drivers/signup", signupPayload)
+	testhelper.AssertAndLogErrors(t, w, http.StatusBadRequest)
 
 	// Missing vehicle registration
 	signupPayload = map[string]string{
@@ -33,8 +34,8 @@ func TestDriverSignup_E2E(t *testing.T) {
 		"password":     "pass123",
 		"vehicle_type": "sedan",
 	}
-	w = doJSONRequest(t, testApp.Router(), http.MethodPost, "/drivers/signup", signupPayload)
-	assertAndLogErrors(t, w, http.StatusBadRequest)
+	w = testhelper.DoJSONRequest(t, testApp.Router(), http.MethodPost, "/drivers/signup", signupPayload)
+	testhelper.AssertAndLogErrors(t, w, http.StatusBadRequest)
 
 	// Invalid vehicle type
 	signupPayload = map[string]string{
@@ -44,8 +45,8 @@ func TestDriverSignup_E2E(t *testing.T) {
 		"vehicle_type":         "rickshaw",
 		"vehicle_registration": "ABC-123",
 	}
-	w = doJSONRequest(t, testApp.Router(), http.MethodPost, "/drivers/signup", signupPayload)
-	assertAndLogErrorsWithBody(t, w, http.StatusBadRequest, "invalid vehicle type")
+	w = testhelper.DoJSONRequest(t, testApp.Router(), http.MethodPost, "/drivers/signup", signupPayload)
+	testhelper.AssertAndLogErrorsWithBody(t, w, http.StatusBadRequest, "invalid vehicle type")
 
 	// Successful signup
 	signupPayload = map[string]string{
@@ -55,8 +56,8 @@ func TestDriverSignup_E2E(t *testing.T) {
 		"vehicle_type":         "car",
 		"vehicle_registration": "ABC-123",
 	}
-	w = doJSONRequest(t, testApp.Router(), http.MethodPost, "/drivers/signup", signupPayload)
-	assertAndLogErrors(t, w, http.StatusCreated)
+	w = testhelper.DoJSONRequest(t, testApp.Router(), http.MethodPost, "/drivers/signup", signupPayload)
+	testhelper.AssertAndLogErrors(t, w, http.StatusCreated)
 
 	// Verify trip.drivers has the record
 	var tripRec struct{ Email string }
@@ -88,8 +89,8 @@ func TestDriverSignup_Validation_E2E(t *testing.T) {
 		"vehicle_type":         "car",
 		"vehicle_registration": "ABC-123",
 	}
-	w := doJSONRequest(t, testApp.Router(), http.MethodPost, "/drivers/signup", signupPayload)
-	assertAndLogErrors(t, w, http.StatusCreated)
+	w := testhelper.DoJSONRequest(t, testApp.Router(), http.MethodPost, "/drivers/signup", signupPayload)
+	testhelper.AssertAndLogErrors(t, w, http.StatusCreated)
 
 	cases := []struct {
 		name    string
@@ -137,8 +138,8 @@ func TestDriverSignup_Validation_E2E(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			w := doJSONRequest(t, testApp.Router(), http.MethodPost, "/drivers/signup", tc.payload)
-			assertAndLogErrors(t, w, http.StatusBadRequest)
+			w := testhelper.DoJSONRequest(t, testApp.Router(), http.MethodPost, "/drivers/signup", tc.payload)
+			testhelper.AssertAndLogErrors(t, w, http.StatusBadRequest)
 		})
 	}
 }

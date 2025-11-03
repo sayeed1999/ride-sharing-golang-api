@@ -1,16 +1,12 @@
 package e2e
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
-	"io"
 	"net/http"
-	"net/http/httptest"
 	"testing"
 
-	"github.com/gin-gonic/gin"
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/app/trip/domain"
+	testhelper "github.com/sayeed1999/ride-sharing-golang-api/pkg/test_helper"
 	"github.com/sayeed1999/ride-sharing-golang-api/tests/e2e/setup"
 	"github.com/stretchr/testify/require"
 )
@@ -26,8 +22,8 @@ func TestRequestTrip_E2E(t *testing.T) {
 
 	// 1. Signup as customer
 	signupPayload := map[string]string{"email": email, "name": name, "password": password}
-	w := doJSONRequest(t, testApp.Router(), http.MethodPost, "/customers/signup", signupPayload)
-	assertAndLogErrors(t, w, http.StatusCreated)
+	w := testhelper.DoJSONRequest(t, testApp.Router(), http.MethodPost, "/customers/signup", signupPayload)
+	testhelper.AssertAndLogErrors(t, w, http.StatusCreated)
 
 	// Extract customer ID
 	var customer struct {
@@ -43,8 +39,8 @@ func TestRequestTrip_E2E(t *testing.T) {
 		"origin":      "123 Main St",
 		"destination": "456 Oak Ave",
 	}
-	w = doJSONRequest(t, testApp.Router(), http.MethodPost, "/trip-requests/request", tripRequestPayload)
-	assertAndLogErrors(t, w, http.StatusCreated)
+	w = testhelper.DoJSONRequest(t, testApp.Router(), http.MethodPost, "/trip-requests/request", tripRequestPayload)
+	testhelper.AssertAndLogErrors(t, w, http.StatusCreated)
 
 	// 3. Verify trip.trip_requests has the record
 	var tripRequestRec domain.TripRequest
@@ -84,26 +80,8 @@ func TestRequestTrip_Validation_E2E(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			w := doJSONRequest(t, testApp.Router(), http.MethodPost, "/trip-requests/request", tc.payload)
-			assertAndLogErrors(t, w, http.StatusBadRequest)
+			w := testhelper.DoJSONRequest(t, testApp.Router(), http.MethodPost, "/trip-requests/request", tc.payload)
+			testhelper.AssertAndLogErrors(t, w, http.StatusBadRequest)
 		})
 	}
-}
-
-// doJSONRequestWithAuth is a helper to make JSON requests with an Authorization header
-func doJSONRequestWithAuth(t *testing.T, router *gin.Engine, method, path string, payload interface{}, token string) *httptest.ResponseRecorder {
-	var reqBody io.Reader
-	if payload != nil {
-		jsonPayload, err := json.Marshal(payload)
-		require.NoError(t, err)
-		reqBody = bytes.NewBuffer(jsonPayload)
-	}
-
-	req, _ := http.NewRequest(method, path, reqBody)
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+token)
-
-	w := httptest.NewRecorder()
-	router.ServeHTTP(w, req)
-	return w
 }

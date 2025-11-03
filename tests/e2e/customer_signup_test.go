@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"testing"
 
+	testhelper "github.com/sayeed1999/ride-sharing-golang-api/pkg/test_helper"
 	"github.com/sayeed1999/ride-sharing-golang-api/tests/e2e/setup"
 	"github.com/stretchr/testify/require"
 )
@@ -18,8 +19,8 @@ func TestCustomerSignupAndLogin_E2E(t *testing.T) {
 
 	// Signup as customer
 	signupPayload := map[string]string{"email": email, "name": "E2E Customer", "password": "pass123"}
-	w := doJSONRequest(t, testApp.Router(), http.MethodPost, "/customers/signup", signupPayload)
-	assertAndLogErrors(t, w, http.StatusCreated)
+	w := testhelper.DoJSONRequest(t, testApp.Router(), http.MethodPost, "/customers/signup", signupPayload)
+	testhelper.AssertAndLogErrors(t, w, http.StatusCreated)
 
 	// Verify trip.customers has the record
 	var tripRec struct{ Email string }
@@ -38,8 +39,8 @@ func TestCustomerSignupAndLogin_E2E(t *testing.T) {
 	}
 	// Try login
 	loginPayload := map[string]string{"email": email, "password": "pass123"}
-	w = doJSONRequest(t, testApp.Router(), http.MethodPost, "/login", loginPayload)
-	assertAndLogErrors(t, w, http.StatusOK)
+	w = testhelper.DoJSONRequest(t, testApp.Router(), http.MethodPost, "/login", loginPayload)
+	testhelper.AssertAndLogErrors(t, w, http.StatusOK)
 
 	// validate JWT
 	tokenStr := extractTokenFromResponse(t, w)
@@ -53,8 +54,8 @@ func TestCustomerSignup_Validation_E2E(t *testing.T) {
 
 	// Signup as customer to test duplicate email
 	signupPayload := map[string]string{"email": "duplicate-customer@example.com", "name": "E2E Customer", "password": "pass123"}
-	w := doJSONRequest(t, testApp.Router(), http.MethodPost, "/customers/signup", signupPayload)
-	assertAndLogErrors(t, w, http.StatusCreated)
+	w := testhelper.DoJSONRequest(t, testApp.Router(), http.MethodPost, "/customers/signup", signupPayload)
+	testhelper.AssertAndLogErrors(t, w, http.StatusCreated)
 
 	cases := []struct {
 		name    string
@@ -80,8 +81,8 @@ func TestCustomerSignup_Validation_E2E(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			w := doJSONRequest(t, testApp.Router(), http.MethodPost, "/customers/signup", tc.payload)
-			assertAndLogErrors(t, w, http.StatusBadRequest)
+			w := testhelper.DoJSONRequest(t, testApp.Router(), http.MethodPost, "/customers/signup", tc.payload)
+			testhelper.AssertAndLogErrors(t, w, http.StatusBadRequest)
 		})
 	}
 }
