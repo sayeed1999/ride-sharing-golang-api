@@ -54,7 +54,7 @@ func TestCancelTrip_E2E(t *testing.T) {
 		"origin":      "789 Pine St",
 		"destination": "101 Elm Ave",
 	}
-	w = testhelper.DoJSONRequest(t, testApp.Router(), http.MethodPost, "/trip-requests/request", tripRequestPayload)
+	w = testhelper.DoJSONRequestWithAuth(t, testApp.Router(), http.MethodPost, "/trip-requests/request", tripRequestPayload, jwtToken)
 	testhelper.AssertAndLogErrors(t, w, http.StatusCreated)
 
 	var tripRequestResponse struct {
@@ -73,7 +73,7 @@ func TestCancelTrip_E2E(t *testing.T) {
 
 	// 5. Verify trip status in DB
 	var tripRequestRec domain.TripRequest
-	err = testApp.DB.Raw("SELECT status FROM trip.trip_requests WHERE id = ?", tripID).Scan(&tripRequestRec.Status).Error
+	err = testApp.DB.Raw("SELECT status FROM trip.trip_requests WHERE id = ?", tripID).Scan(&tripRequestRec).Error
 	require.NoError(t, err)
 	require.Equal(t, domain.CUSTOMER_CANCELED, tripRequestRec.Status)
 }
@@ -121,7 +121,7 @@ func TestCancelTrip_Validation_E2E(t *testing.T) {
 		"origin":      "789 Pine St",
 		"destination": "101 Elm Ave",
 	}
-	w = testhelper.DoJSONRequest(t, testApp.Router(), http.MethodPost, "/trip-requests/request", tripRequestPayload)
+	w = testhelper.DoJSONRequestWithAuth(t, testApp.Router(), http.MethodPost, "/trip-requests/request", tripRequestPayload, jwtToken)
 	testhelper.AssertAndLogErrors(t, w, http.StatusCreated)
 
 	var tripRequestResponse struct {
@@ -157,12 +157,23 @@ func TestCancelTrip_Unauthorized(t *testing.T) {
 	err := testApp.DB.Raw("SELECT id FROM trip.customers WHERE email = ?", userAEmail).Scan(&customerA.ID).Error
 	require.NoError(t, err)
 
+	loginPayloadA := map[string]string{"email": userAEmail, "password": userAPassword}
+	w = testhelper.DoJSONRequest(t, testApp.Router(), http.MethodPost, "/login", loginPayloadA)
+	testhelper.AssertAndLogErrors(t, w, http.StatusOK)
+
+	var loginResponseA struct {
+		Token string `json:"token"`
+	}
+	err = json.Unmarshal(w.Body.Bytes(), &loginResponseA)
+	require.NoError(t, err)
+	jwtTokenA := loginResponseA.Token
+
 	tripRequestPayload := map[string]interface{}{
 		"customer_id": customerA.ID,
 		"origin":      "123 Main St",
 		"destination": "456 Oak Ave",
 	}
-	w = testhelper.DoJSONRequest(t, testApp.Router(), http.MethodPost, "/trip-requests/request", tripRequestPayload)
+	w = testhelper.DoJSONRequestWithAuth(t, testApp.Router(), http.MethodPost, "/trip-requests/request", tripRequestPayload, jwtTokenA)
 	testhelper.AssertAndLogErrors(t, w, http.StatusCreated)
 
 	var tripRequestResponse struct {
@@ -195,4 +206,14 @@ func TestCancelTrip_Unauthorized(t *testing.T) {
 	// 3. User B attempts to cancel User A's trip
 	w = testhelper.DoJSONRequestWithAuth(t, testApp.Router(), http.MethodDelete, fmt.Sprintf("/trip-requests/%s", tripID), nil, jwtTokenB)
 	testhelper.AssertAndLogErrors(t, w, http.StatusBadRequest)
+}
+
+func TestCancelTrip_Unauthenticated_E2E(t *testing.T) {
+	ctx := context.Background()
+	testApp := setup.NewTestApp(ctx, t, true)
+	defer testApp.CleanUp(ctx, t)
+
+	// Attempt to cancel a trip without a token
+	w := testhelper.DoJSONRequest(t, testApp.Router(), http.MethodDelete, "/trip-requests/some-trip-id", nil)
+	testhelper.AssertAndLogErrors(t, w, http.StatusUnauthorized)
 }

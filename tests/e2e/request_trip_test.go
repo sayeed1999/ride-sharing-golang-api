@@ -33,13 +33,19 @@ func TestRequestTrip_E2E(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, customer.ID, "Customer ID should not be empty")
 
-	// 2. Request a trip
+	// 2. Login as customer
+	loginPayload := map[string]string{"email": email, "password": password}
+	w = testhelper.DoJSONRequest(t, testApp.Router(), http.MethodPost, "/login", loginPayload)
+	testhelper.AssertAndLogErrors(t, w, http.StatusOK)
+	token := extractTokenFromResponse(t, w)
+
+	// 3. Request a trip
 	tripRequestPayload := map[string]interface{}{
 		"customer_id": customer.ID,
 		"origin":      "123 Main St",
 		"destination": "456 Oak Ave",
 	}
-	w = testhelper.DoJSONRequest(t, testApp.Router(), http.MethodPost, "/trip-requests/request", tripRequestPayload)
+	w = testhelper.DoJSONRequestWithAuth(t, testApp.Router(), http.MethodPost, "/trip-requests/request", tripRequestPayload, token)
 	testhelper.AssertAndLogErrors(t, w, http.StatusCreated)
 
 	// 3. Verify trip.trip_requests has the record
@@ -57,18 +63,22 @@ func TestRequestTrip_Validation_E2E(t *testing.T) {
 	testApp := setup.NewTestApp(ctx, t, true)
 	defer testApp.CleanUp(ctx, t)
 
+	// Signup and login a customer to get a valid token
+	email := "e2e-customer-validation@example.com"
+	password := "pass123"
+	signupPayload := map[string]string{"email": email, "name": "E2E Customer Validation", "password": password}
+	w := testhelper.DoJSONRequest(t, testApp.Router(), http.MethodPost, "/customers/signup", signupPayload)
+	testhelper.AssertAndLogErrors(t, w, http.StatusCreated)
+
+	loginPayload := map[string]string{"email": email, "password": password}
+	w = testhelper.DoJSONRequest(t, testApp.Router(), http.MethodPost, "/login", loginPayload)
+	testhelper.AssertAndLogErrors(t, w, http.StatusOK)
+	token := extractTokenFromResponse(t, w)
+
 	cases := []struct {
 		name    string
 		payload map[string]interface{}
 	}{
-		{
-			name: "invalid customer id",
-			payload: map[string]interface{}{
-				"customer_id": "invalid-uuid",
-				"origin":      "123 Main St",
-				"destination": "456 Oak Ave",
-			},
-		},
 		{
 			name: "missing origin",
 			payload: map[string]interface{}{
@@ -80,8 +90,23 @@ func TestRequestTrip_Validation_E2E(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			w := testhelper.DoJSONRequest(t, testApp.Router(), http.MethodPost, "/trip-requests/request", tc.payload)
+			w := testhelper.DoJSONRequestWithAuth(t, testApp.Router(), http.MethodPost, "/trip-requests/request", tc.payload, token)
 			testhelper.AssertAndLogErrors(t, w, http.StatusBadRequest)
 		})
 	}
+}
+
+func TestRequestTrip_Unauthenticated_E2E(t *testing.T) {
+	ctx := context.Background()
+	testApp := setup.NewTestApp(ctx, t, true)
+	defer testApp.CleanUp(ctx, t)
+
+	tripRequestPayload := map[string]interface{}{
+		"customer_id": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+		"origin":      "123 Main St",
+		"destination": "456 Oak Ave",
+	}
+
+	w := testhelper.DoJSONRequest(t, testApp.Router(), http.MethodPost, "/trip-requests/request", tripRequestPayload)
+	testhelper.AssertAndLogErrors(t, w, http.StatusUnauthorized)
 }

@@ -26,11 +26,24 @@ func NewTripRequestHandler(requestTripUC *usecase.RequestTripUsecase, customerCa
 }
 
 func (h *TripRequestHandler) RequestTrip(c *gin.Context) {
+	userEmail, ok := c.MustGet("x-user-email").(string)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "user email not found in context"})
+	}
+
+	customer, err := h.CustomerRepo.FindByEmail(userEmail)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "customer not found"})
+		return
+	}
+
 	var req TripRequestRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
 		return
 	}
+
+	req.CustomerID = customer.ID.String()
 
 	customerUUID, err := uuid.Parse(req.CustomerID)
 	if err != nil {

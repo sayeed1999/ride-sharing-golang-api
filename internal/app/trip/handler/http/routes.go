@@ -71,7 +71,7 @@ func RegisterAllHTTPRoutes(rg *gin.RouterGroup, db *gorm.DB, cfg *config.Config)
 
 	tripRequests := rg.Group("/trip-requests")
 	{
-		tripRequests.POST("/request", handlers.TripRequestHandler.RequestTrip)
+		tripRequests.POST("/request", middleware.AuthMiddleware(cfg.Auth.JWTSecret), handlers.TripRequestHandler.RequestTrip)
 		tripRequests.DELETE("/:tripID", middleware.AuthMiddleware(cfg.Auth.JWTSecret), handlers.TripRequestHandler.CancelTripRequest)
 	}
 }
