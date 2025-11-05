@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/sayeed1999/ride-sharing-golang-api/internal/app/trip/domain"
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/app/trip/repository"
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/app/trip/usecase"
 )
@@ -26,15 +27,9 @@ func NewTripRequestHandler(requestTripUC *usecase.RequestTripUsecase, customerCa
 }
 
 func (h *TripRequestHandler) RequestTrip(c *gin.Context) {
-	userEmail, ok := c.MustGet("x-user-email").(string)
+	customer, ok := c.MustGet("customer").(*domain.Customer)
 	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "user email not found in context"})
-	}
-
-	customer, err := h.CustomerRepo.FindByEmail(userEmail)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "customer not found"})
-		return
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "customer not found in context"})
 	}
 
 	var req TripRequestRequest
@@ -68,15 +63,9 @@ func (h *TripRequestHandler) CancelTripRequest(c *gin.Context) {
 		return
 	}
 
-	userEmail, ok := c.MustGet("x-user-email").(string)
+	customer, ok := c.MustGet("customer").(*domain.Customer)
 	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "user email not found in context"})
-		return
-	}
-
-	customer, err := h.CustomerRepo.FindByEmail(userEmail)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "customer not found"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "customer not found in context"})
 		return
 	}
 

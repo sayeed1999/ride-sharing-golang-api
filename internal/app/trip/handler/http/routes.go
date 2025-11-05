@@ -7,7 +7,8 @@ import (
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/app/trip/repository"
 	trippostgres "github.com/sayeed1999/ride-sharing-golang-api/internal/app/trip/repository/postgres"
 	tripusecase "github.com/sayeed1999/ride-sharing-golang-api/internal/app/trip/usecase"
-	"github.com/sayeed1999/ride-sharing-golang-api/pkg/middleware"
+	"github.com/sayeed1999/ride-sharing-golang-api/internal/pkg/middleware"
+	public_middleware "github.com/sayeed1999/ride-sharing-golang-api/pkg/middleware"
 	"gorm.io/gorm"
 )
 
@@ -57,6 +58,7 @@ func newHTTPHandlers(db *gorm.DB, cfg *config.Config) *Handlers {
 // RegisterAllHTTPRoutes registers all HTTP routes for the trip module.
 // It performs dependency injection for the HTTP handlers internally.
 func RegisterAllHTTPRoutes(rg *gin.RouterGroup, db *gorm.DB, cfg *config.Config) {
+	var custRepo repository.CustomerRepository = &trippostgres.CustomerRepo{DB: db}
 	handlers := newHTTPHandlers(db, cfg)
 
 	customers := rg.Group("/customers")
@@ -70,8 +72,11 @@ func RegisterAllHTTPRoutes(rg *gin.RouterGroup, db *gorm.DB, cfg *config.Config)
 	}
 
 	tripRequests := rg.Group("/trip-requests")
+	tripRequests.Use(
+		public_middleware.AuthMiddleware(cfg.Auth.JWTSecret),
+		middleware.CustomerMiddleware(custRepo))
 	{
-		tripRequests.POST("/request", middleware.AuthMiddleware(cfg.Auth.JWTSecret), handlers.TripRequestHandler.RequestTrip)
-		tripRequests.DELETE("/:tripID", middleware.AuthMiddleware(cfg.Auth.JWTSecret), handlers.TripRequestHandler.CancelTripRequest)
+		tripRequests.POST("/request", handlers.TripRequestHandler.RequestTrip)
+		tripRequests.DELETE("/:tripID", handlers.TripRequestHandler.CancelTripRequest)
 	}
 }
