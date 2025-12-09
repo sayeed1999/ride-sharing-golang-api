@@ -27,10 +27,7 @@ func NewTripRequestHandler(requestTripUC *usecase.RequestTripUsecase, customerCa
 }
 
 func (h *TripRequestHandler) RequestTrip(c *gin.Context) {
-	customer, ok := c.MustGet("customer").(*domain.Customer)
-	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "customer not found in context"})
-	}
+	customer, _ := c.MustGet("customer").(*domain.Customer) // assumed to be set by customer middleware
 
 	var req TripRequestRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -57,17 +54,9 @@ func (h *TripRequestHandler) RequestTrip(c *gin.Context) {
 
 func (h *TripRequestHandler) CancelTripRequest(c *gin.Context) {
 	tripIDStr := c.Param("tripID")
-	tripID, err := uuid.Parse(tripIDStr)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid trip ID"})
-		return
-	}
+	tripID, _ := uuid.Parse(tripIDStr) // assumed to be validated by trip request middleware!!
 
-	customer, ok := c.MustGet("customer").(*domain.Customer)
-	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "customer not found in context"})
-		return
-	}
+	customer, _ := c.MustGet("customer").(*domain.Customer) // assumed to be set by middleware
 
 	if err := h.CustomerCancelTripUC.Execute(c.Request.Context(), tripID, customer.ID); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})

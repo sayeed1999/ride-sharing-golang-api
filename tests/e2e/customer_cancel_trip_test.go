@@ -54,7 +54,7 @@ func TestCancelTrip_E2E(t *testing.T) {
 		"origin":      "789 Pine St",
 		"destination": "101 Elm Ave",
 	}
-	w = testhelper.DoJSONRequestWithAuth(t, testApp.Router(), http.MethodPost, "/trip-requests/request", tripRequestPayload, jwtToken)
+	w = testhelper.DoJSONRequestWithAuth(t, testApp.Router(), http.MethodPost, "/trip-requests", tripRequestPayload, jwtToken)
 	testhelper.AssertAndLogErrors(t, w, http.StatusCreated)
 
 	var tripRequestResponse struct {
@@ -121,7 +121,7 @@ func TestCancelTrip_Validation_E2E(t *testing.T) {
 		"origin":      "789 Pine St",
 		"destination": "101 Elm Ave",
 	}
-	w = testhelper.DoJSONRequestWithAuth(t, testApp.Router(), http.MethodPost, "/trip-requests/request", tripRequestPayload, jwtToken)
+	w = testhelper.DoJSONRequestWithAuth(t, testApp.Router(), http.MethodPost, "/trip-requests", tripRequestPayload, jwtToken)
 	testhelper.AssertAndLogErrors(t, w, http.StatusCreated)
 
 	var tripRequestResponse struct {
@@ -168,12 +168,13 @@ func TestCancelTrip_Unauthorized(t *testing.T) {
 	require.NoError(t, err)
 	jwtTokenA := loginResponseA.Token
 
+	// 2. Create Trip Request for User A
 	tripRequestPayload := map[string]interface{}{
 		"customer_id": customerA.ID,
 		"origin":      "123 Main St",
 		"destination": "456 Oak Ave",
 	}
-	w = testhelper.DoJSONRequestWithAuth(t, testApp.Router(), http.MethodPost, "/trip-requests/request", tripRequestPayload, jwtTokenA)
+	w = testhelper.DoJSONRequestWithAuth(t, testApp.Router(), http.MethodPost, "/trip-requests", tripRequestPayload, jwtTokenA)
 	testhelper.AssertAndLogErrors(t, w, http.StatusCreated)
 
 	var tripRequestResponse struct {
@@ -205,7 +206,7 @@ func TestCancelTrip_Unauthorized(t *testing.T) {
 
 	// 3. User B attempts to cancel User A's trip
 	w = testhelper.DoJSONRequestWithAuth(t, testApp.Router(), http.MethodDelete, fmt.Sprintf("/trip-requests/%s", tripID), nil, jwtTokenB)
-	testhelper.AssertAndLogErrors(t, w, http.StatusBadRequest)
+	testhelper.AssertAndLogErrors(t, w, http.StatusForbidden)
 }
 
 func TestCancelTrip_Unauthenticated_E2E(t *testing.T) {

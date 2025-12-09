@@ -19,9 +19,7 @@ func (uc *CustomerCancelTrip) Execute(ctx context.Context, tripID uuid.UUID, cus
 		return err
 	}
 
-	if tripRequest.CustomerID != customerID {
-		return errors.New("trip request does not belong to customer")
-	}
+	// trip request middleware validates that the trip belongs to the customer
 
 	// Only allow cancellation if the trip is in NO_DRIVER_FOUND state
 	if tripRequest.Status != domain.NO_DRIVER_FOUND {

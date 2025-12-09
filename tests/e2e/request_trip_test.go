@@ -45,7 +45,7 @@ func TestRequestTrip_E2E(t *testing.T) {
 		"origin":      "123 Main St",
 		"destination": "456 Oak Ave",
 	}
-	w = testhelper.DoJSONRequestWithAuth(t, testApp.Router(), http.MethodPost, "/trip-requests/request", tripRequestPayload, token)
+	w = testhelper.DoJSONRequestWithAuth(t, testApp.Router(), http.MethodPost, "/trip-requests", tripRequestPayload, token)
 	testhelper.AssertAndLogErrors(t, w, http.StatusCreated)
 
 	// 3. Verify trip.trip_requests has the record
@@ -90,7 +90,7 @@ func TestRequestTrip_Validation_E2E(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			w := testhelper.DoJSONRequestWithAuth(t, testApp.Router(), http.MethodPost, "/trip-requests/request", tc.payload, token)
+			w := testhelper.DoJSONRequestWithAuth(t, testApp.Router(), http.MethodPost, "/trip-requests", tc.payload, token)
 			testhelper.AssertAndLogErrors(t, w, http.StatusBadRequest)
 		})
 	}
@@ -107,6 +107,6 @@ func TestRequestTrip_Unauthenticated_E2E(t *testing.T) {
 		"destination": "456 Oak Ave",
 	}
 
-	w := testhelper.DoJSONRequest(t, testApp.Router(), http.MethodPost, "/trip-requests/request", tripRequestPayload)
+	w := testhelper.DoJSONRequest(t, testApp.Router(), http.MethodPost, "/trip-requests", tripRequestPayload)
 	testhelper.AssertAndLogErrors(t, w, http.StatusUnauthorized)
 }

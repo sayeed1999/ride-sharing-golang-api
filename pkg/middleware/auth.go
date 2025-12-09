@@ -31,12 +31,14 @@ func AuthMiddleware(jwtSecret string) gin.HandlerFunc {
 			return []byte(jwtSecret), nil
 		})
 
+		// Check if the token is valid
 		if err != nil || !token.Valid {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token"})
 			c.Abort()
 			return
 		}
 
+		// Check if the toekn claims are valid
 		claims, ok := token.Claims.(jwt.MapClaims)
 		if !ok {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token claims"})
@@ -44,6 +46,7 @@ func AuthMiddleware(jwtSecret string) gin.HandlerFunc {
 			return
 		}
 
+		// Check if user email is found in token claims
 		userEmail, ok := claims["sub"].(string)
 		if !ok {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "User email not found in token claims"})
@@ -51,6 +54,7 @@ func AuthMiddleware(jwtSecret string) gin.HandlerFunc {
 			return
 		}
 
+		// Set user email in context for downstream handlers
 		c.Set("x-user-email", userEmail)
 		c.Next()
 	}

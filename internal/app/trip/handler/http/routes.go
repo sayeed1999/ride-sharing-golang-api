@@ -59,6 +59,8 @@ func newHTTPHandlers(db *gorm.DB, cfg *config.Config) *Handlers {
 // It performs dependency injection for the HTTP handlers internally.
 func RegisterAllHTTPRoutes(rg *gin.RouterGroup, db *gorm.DB, cfg *config.Config) {
 	var custRepo repository.CustomerRepository = &trippostgres.CustomerRepo{DB: db}
+	var tripRequestRepo repository.TripRequestRepository = &trippostgres.TripRequestRepo{DB: db}
+
 	handlers := newHTTPHandlers(db, cfg)
 
 	customers := rg.Group("/customers")
@@ -76,7 +78,9 @@ func RegisterAllHTTPRoutes(rg *gin.RouterGroup, db *gorm.DB, cfg *config.Config)
 		public_middleware.AuthMiddleware(cfg.Auth.JWTSecret),
 		middleware.CustomerMiddleware(custRepo))
 	{
-		tripRequests.POST("/request", handlers.TripRequestHandler.RequestTrip)
-		tripRequests.DELETE("/:tripID", handlers.TripRequestHandler.CancelTripRequest)
+		tripRequests.POST("", handlers.TripRequestHandler.RequestTrip)
+		tripRequests.DELETE("/:tripID",
+			middleware.TripRequestMiddleware(tripRequestRepo),
+			handlers.TripRequestHandler.CancelTripRequest)
 	}
 }
