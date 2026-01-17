@@ -3,20 +3,19 @@ package http
 import (
 	"net/http"
 
-	"github.com/sayeed1999/ride-sharing-golang-api/internal/app/auth/usecase"
+	"github.com/sayeed1999/ride-sharing-golang-api/internal/app/auth/service"
 	jwtpkg "github.com/sayeed1999/ride-sharing-golang-api/pkg/jwt"
 
 	"github.com/gin-gonic/gin"
 )
 
 type AuthHandler struct {
-	RegisterUC *usecase.RegisterUsecase
-	LoginUC    *usecase.LoginUsecase
-	JWTService *jwtpkg.Service
+	UserService *service.UserService
+	JWTService  *jwtpkg.Service
 }
 
-func NewAuthHandler(registerUC *usecase.RegisterUsecase, loginUC *usecase.LoginUsecase, jwtService *jwtpkg.Service) *AuthHandler {
-	return &AuthHandler{registerUC, loginUC, jwtService}
+func NewAuthHandler(userService *service.UserService, jwtService *jwtpkg.Service) *AuthHandler {
+	return &AuthHandler{userService, jwtService}
 }
 
 func (h *AuthHandler) Register(c *gin.Context) {
@@ -26,7 +25,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		return
 	}
 
-	if _, err := h.RegisterUC.Register(req.Email, req.Password, req.Role); err != nil {
+	if _, err := h.UserService.Register(req.Email, req.Password, req.Role); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -41,7 +40,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	if err := h.LoginUC.Login(req.Email, req.Password); err != nil {
+	if err := h.UserService.Login(req.Email, req.Password); err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
 		return
 	}

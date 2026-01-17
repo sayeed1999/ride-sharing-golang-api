@@ -11,5 +11,5 @@ type VehicleType struct {
 }
 
 func (VehicleType) TableName() string {
-    return "trip.vehicle_types"
+	return "trip.vehicle_types"
 }

@@ -7,7 +7,7 @@ import (
 	"github.com/sayeed1999/ride-sharing-golang-api/config"
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/app/auth/repository"
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/app/auth/repository/postgres"
-	"github.com/sayeed1999/ride-sharing-golang-api/internal/app/auth/usecase"
+	"github.com/sayeed1999/ride-sharing-golang-api/internal/app/auth/service"
 	jwtpkg "github.com/sayeed1999/ride-sharing-golang-api/pkg/jwt"
 
 	"gorm.io/gorm"
@@ -20,17 +20,13 @@ func RegisterAllHTTPRoutes(rg *gin.RouterGroup, db *gorm.DB, cfg *config.Config)
 	postgresRepo := &postgres.UserRepo{DB: db}
 	var userRepo repository.UserRepository = postgresRepo
 
-	// Usecases
-	registerUC := &usecase.RegisterUsecase{
-		UserRepo:                  userRepo,
-		RequireRoleOnRegistration: cfg.FeatureFlags.RequireRoleOnRegistration,
-	}
-	loginUC := &usecase.LoginUsecase{UserRepo: userRepo}
+	// Services
+	userService := service.NewUserService(userRepo, cfg.FeatureFlags.RequireRoleOnRegistration)
 
 	// JWT service (injected)
 	jwtService := jwtpkg.New(cfg.Auth.JWTSecret, 24*time.Hour)
 
-	authHandler := NewAuthHandler(registerUC, loginUC, jwtService)
+	authHandler := NewAuthHandler(userService, jwtService)
 
 	rg.POST("/register", authHandler.Register)
 	rg.POST("/login", authHandler.Login)

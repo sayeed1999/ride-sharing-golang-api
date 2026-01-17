@@ -24,20 +24,17 @@ func NewDIContainer(db *gorm.DB, cfg *config.Config) *DIContainer {
 	var tripRequestRepository repository.TripRequestRepository = &tripPostgres.TripRequestRepo{DB: db}
 
 	// ======== Other module usecases =========
-	authRegisterUC := auth.NewRegisterUsecase(db, cfg)
-	authDeleteUC := auth.NewDeleteUserUsecase(db)
+	authService := auth.NewUserService(db, cfg)
 
 	// ======== Usecases or services =========
 	customerSignupUsecase := &usecase.CustomerSignupUsecase{
-		CustomerRepo:   customerRepository,
-		AuthRegister:   authRegisterUC,
-		AuthDeleteUser: authDeleteUC,
+		CustomerRepo: customerRepository,
+		AuthService:  authService,
 	}
 
 	driverSignupUsecase := &usecase.DriverSignupUsecase{
-		DriverRepo:     driverRepository,
-		AuthRegister:   authRegisterUC,
-		AuthDeleteUser: authDeleteUC,
+		DriverRepo:  driverRepository,
+		AuthService: authService,
 	}
 
 	requestTripUsecase := &usecase.RequestTripUsecase{

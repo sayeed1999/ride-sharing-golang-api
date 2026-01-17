@@ -3,16 +3,15 @@ package usecase
 import (
 	"errors"
 
-	authusecase "github.com/sayeed1999/ride-sharing-golang-api/internal/app/auth/usecase"
+	"github.com/sayeed1999/ride-sharing-golang-api/internal/app/auth/service"
 	tripdomain "github.com/sayeed1999/ride-sharing-golang-api/internal/app/trip/domain"
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/app/trip/repository"
 )
 
 // DriverSignupUsecase handles driver signups including vehicle details.
 type DriverSignupUsecase struct {
-	DriverRepo     repository.DriverRepository
-	AuthRegister   *authusecase.RegisterUsecase
-	AuthDeleteUser *authusecase.DeleteUserUsecase // For compensating actions
+	DriverRepo  repository.DriverRepository
+	AuthService *service.UserService // For compensating actions
 }
 
 // Signup registers an auth user and then creates a corresponding driver record.
@@ -22,7 +21,7 @@ func (uc *DriverSignupUsecase) Signup(email, name, password, vehicleType, vehicl
 	}
 
 	// 1. Register auth user first
-	authUser, err := uc.AuthRegister.Register(email, password, "driver")
+	authUser, err := uc.AuthService.Register(email, password, "driver")
 	if err != nil {
 		return nil, err
 	}
@@ -31,7 +30,7 @@ func (uc *DriverSignupUsecase) Signup(email, name, password, vehicleType, vehicl
 	ve, _, ok := tripdomain.LookupVehicleEnum(vehicleType)
 	if !ok {
 		// Compensating action: delete the created auth user
-		_ = uc.AuthDeleteUser.DeleteUser(authUser.ID)
+		_ = uc.AuthService.DeleteUser(authUser.ID)
 		return nil, errors.New("invalid vehicle type")
 	}
 
@@ -47,7 +46,7 @@ func (uc *DriverSignupUsecase) Signup(email, name, password, vehicleType, vehicl
 	created, err := uc.DriverRepo.CreateDriver(driver)
 	if err != nil {
 		// Compensating action: delete the created auth user
-		_ = uc.AuthDeleteUser.DeleteUser(authUser.ID)
+		_ = uc.AuthService.DeleteUser(authUser.ID)
 		return nil, err
 	}
 
