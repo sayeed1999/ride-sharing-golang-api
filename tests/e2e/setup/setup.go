@@ -7,9 +7,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/sayeed1999/ride-sharing-golang-api/config"
-	"github.com/sayeed1999/ride-sharing-golang-api/database"
 	auth "github.com/sayeed1999/ride-sharing-golang-api/internal/app/auth"
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/app/trip"
+	"github.com/sayeed1999/ride-sharing-golang-api/internal/database"
 	"github.com/stretchr/testify/require"
 	tc "github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"

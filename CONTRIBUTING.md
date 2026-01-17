@@ -8,7 +8,7 @@ This guide outlines the steps to add a new API endpoint to the application, foll
 
 ### 1. Database Migration
 
-- If your endpoint requires database changes, create a new migration file in `database/migrations/`.
+- If your endpoint requires database changes, create a new migration file in `internal/database/migrations/`.
 - **Naming Convention:** Use an incremental number prefix followed by a descriptive name (e.g., `000007_create_new_feature_table.up.sql`). While `YYYYMMDDHHMMSS` is a common alternative, we currently use incremental numbering.
 - Write the SQL statements for creating or altering tables in the `.up.sql` file and the statements to revert those changes in the `.down.sql` file.
 - Run `scripts/migrate.sh` to apply the migration. Always verify the migration runs successfully.

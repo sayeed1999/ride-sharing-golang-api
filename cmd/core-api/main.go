@@ -4,9 +4,9 @@ import (
 	"log"
 
 	"github.com/sayeed1999/ride-sharing-golang-api/config"
-	"github.com/sayeed1999/ride-sharing-golang-api/database"
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/app/auth"
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/app/trip"
+	"github.com/sayeed1999/ride-sharing-golang-api/internal/database"
 
 	"github.com/gin-gonic/gin"
 )
