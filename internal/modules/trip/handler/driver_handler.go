@@ -16,11 +16,11 @@ type DriverSignupRequest struct {
 }
 
 type DriverHandler struct {
-	SignupUC *service.DriverSignupService
+	DriverService *service.DriverService
 }
 
-func NewDriverHandler(signupUC *service.DriverSignupService) *DriverHandler {
-	return &DriverHandler{SignupUC: signupUC}
+func NewDriverHandler(driverService *service.DriverService) *DriverHandler {
+	return &DriverHandler{DriverService: driverService}
 }
 
 func (h *DriverHandler) DriverSignup(c *gin.Context) {
@@ -30,7 +30,7 @@ func (h *DriverHandler) DriverSignup(c *gin.Context) {
 		return
 	}
 
-	drv, err := h.SignupUC.Signup(req.Email, req.Name, req.Password, req.VehicleType, req.VehicleRegistration)
+	drv, err := h.DriverService.Signup(req.Email, req.Name, req.Password, req.VehicleType, req.VehicleRegistration)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

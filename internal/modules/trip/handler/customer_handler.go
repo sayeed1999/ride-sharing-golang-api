@@ -14,11 +14,11 @@ type CustomerSignupRequest struct {
 }
 
 type CustomerHandler struct {
-	SignupUC *service.CustomerSignupService
+	CustomerService *service.CustomerService
 }
 
-func NewCustomerHandler(signupUC *service.CustomerSignupService) *CustomerHandler {
-	return &CustomerHandler{SignupUC: signupUC}
+func NewCustomerHandler(customerService *service.CustomerService) *CustomerHandler {
+	return &CustomerHandler{CustomerService: customerService}
 }
 
 func (h *CustomerHandler) CustomerSignup(c *gin.Context) {
@@ -28,7 +28,7 @@ func (h *CustomerHandler) CustomerSignup(c *gin.Context) {
 		return
 	}
 
-	cust, err := h.SignupUC.Signup(req.Email, req.Name, req.Password)
+	cust, err := h.CustomerService.Signup(req.Email, req.Name, req.Password)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

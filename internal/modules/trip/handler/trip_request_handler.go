@@ -6,7 +6,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/modules/trip/domain"
-	"github.com/sayeed1999/ride-sharing-golang-api/internal/modules/trip/repository"
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/modules/trip/service"
 )
 
@@ -17,13 +16,11 @@ type TripRequestRequest struct {
 }
 
 type TripRequestHandler struct {
-	RequestTripUC        *service.RequestTripService
-	CustomerCancelTripUC *service.CustomerCancelTrip
-	CustomerRepository   repository.ICustomerRepository
+	TripRequestService service.ITripRequestService
 }
 
-func NewTripRequestHandler(requestTripUC *service.RequestTripService, customerCancelTripUC *service.CustomerCancelTrip, customerRepo repository.ICustomerRepository) *TripRequestHandler {
-	return &TripRequestHandler{RequestTripUC: requestTripUC, CustomerCancelTripUC: customerCancelTripUC, CustomerRepository: customerRepo}
+func NewTripRequestHandler(tripRequestService service.ITripRequestService) *TripRequestHandler {
+	return &TripRequestHandler{TripRequestService: tripRequestService}
 }
 
 func (h *TripRequestHandler) RequestTrip(c *gin.Context) {
@@ -43,7 +40,7 @@ func (h *TripRequestHandler) RequestTrip(c *gin.Context) {
 		return
 	}
 
-	tripRequest, err := h.RequestTripUC.Execute(customerUUID, req.Origin, req.Destination)
+	tripRequest, err := h.TripRequestService.RequestTrip(customerUUID, req.Origin, req.Destination)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -58,7 +55,7 @@ func (h *TripRequestHandler) CancelTripRequest(c *gin.Context) {
 
 	customer, _ := c.MustGet("customer").(*domain.Customer) // assumed to be set by middleware
 
-	if err := h.CustomerCancelTripUC.Execute(c.Request.Context(), tripID, customer.ID); err != nil {
+	if err := h.TripRequestService.CancelTripRequest(c.Request.Context(), tripID, customer.ID); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
