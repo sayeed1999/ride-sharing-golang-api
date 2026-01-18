@@ -6,7 +6,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/sayeed1999/ride-sharing-golang-api/config"
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/modules/auth/repository"
-	"github.com/sayeed1999/ride-sharing-golang-api/internal/modules/auth/repository/postgres"
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/modules/auth/service"
 	jwtpkg "github.com/sayeed1999/ride-sharing-golang-api/pkg/jwt"
 
@@ -17,8 +16,8 @@ import (
 // It performs dependency injection for the HTTP handlers internally.
 func RegisterAllHTTPRoutes(rg *gin.RouterGroup, db *gorm.DB, cfg *config.Config) {
 	// Repositories
-	postgresRepo := &postgres.UserRepo{DB: db}
-	var userRepo repository.UserRepository = postgresRepo
+	postgresRepo := &repository.UserRepository{DB: db}
+	var userRepo repository.IUserRepository = postgresRepo
 
 	// Services
 	userService := service.NewUserService(userRepo, cfg.FeatureFlags.RequireRoleOnRegistration)

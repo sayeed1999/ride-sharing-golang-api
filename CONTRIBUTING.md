@@ -21,7 +21,7 @@ This guide outlines the steps to add a new API endpoint to the application, foll
 ### 3. Repository Layer
 
 - **Interface (`internal/modules/<module>/repository/`):** Define an interface that declares the methods for interacting with the persistence layer (e.g., `SaveUser(user *domain.User) error`, `GetUserByID(id string) (*domain.User, error)`).
-- **Implementation (`internal/modules/<module>/repository/postgres/`):** Implement the defined interface using PostgreSQL-specific logic. This is where you'll write SQL queries or use an ORM/query builder. Ensure proper error handling and transaction management.
+- **Implementation (`internal/modules/<module>/repository`):** Implement the defined interface using PostgreSQL-specific logic. This is where you'll write SQL queries or use an ORM/query builder. Ensure proper error handling and transaction management.
 
 ### 4. Service Layer (Business Logic)
 

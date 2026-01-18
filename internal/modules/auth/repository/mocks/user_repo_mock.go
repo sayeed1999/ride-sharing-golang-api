@@ -113,5 +113,5 @@ func (m *MockUserRepository) GetUserCount() int {
 	return len(m.users)
 }
 
-// Ensure MockUserRepository implements UserRepository interface
-var _ repository.UserRepository = (*MockUserRepository)(nil)
+// Ensure MockUserRepository implements IUserRepository interface
+var _ repository.IUserRepository = (*MockUserRepository)(nil)

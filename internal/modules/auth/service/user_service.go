@@ -11,13 +11,13 @@ import (
 )
 
 type UserService struct {
-	UserRepo                  repository.UserRepository
+	UserRepository                  repository.IUserRepository
 	RequireRoleOnRegistration bool
 }
 
-func NewUserService(userRepo repository.UserRepository, requireRoleOnRegistration bool) *UserService {
+func NewUserService(userRepo repository.IUserRepository, requireRoleOnRegistration bool) *UserService {
 	return &UserService{
-		UserRepo:                  userRepo,
+		UserRepository:                  userRepo,
 		RequireRoleOnRegistration: requireRoleOnRegistration,
 	}
 }
@@ -31,7 +31,7 @@ func (s *UserService) Register(email, pass, role string) (*domain.User, error) {
 		}
 	}
 
-	if _, err := s.UserRepo.FindByEmail(email); err == nil {
+	if _, err := s.UserRepository.FindByEmail(email); err == nil {
 		return nil, errors.New("user already exists")
 	}
 
@@ -50,13 +50,13 @@ func (s *UserService) Register(email, pass, role string) (*domain.User, error) {
 		PasswordSalt: salt,
 	}
 
-	newUser, err := s.UserRepo.CreateUser(user)
+	newUser, err := s.UserRepository.CreateUser(user)
 	if err != nil {
 		return nil, err
 	}
 
 	if role != "" {
-		if _, err := s.UserRepo.AssignRole(newUser.ID, role); err != nil {
+		if _, err := s.UserRepository.AssignRole(newUser.ID, role); err != nil {
 			return nil, err
 		}
 	}
@@ -65,7 +65,7 @@ func (s *UserService) Register(email, pass, role string) (*domain.User, error) {
 }
 
 func (s *UserService) Login(email, pass string) error {
-	user, err := s.UserRepo.FindByEmail(email)
+	user, err := s.UserRepository.FindByEmail(email)
 	if err != nil {
 		return errors.New("invalid credentials")
 	}
@@ -78,5 +78,5 @@ func (s *UserService) Login(email, pass string) error {
 }
 
 func (s *UserService) DeleteUser(userID uuid.UUID) error {
-	return s.UserRepo.DeleteUser(userID)
+	return s.UserRepository.DeleteUser(userID)
 }
