@@ -6,7 +6,7 @@ import (
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/modules/trip/handler"
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/modules/trip/repository"
 	tripPostgres "github.com/sayeed1999/ride-sharing-golang-api/internal/modules/trip/repository/postgres"
-	"github.com/sayeed1999/ride-sharing-golang-api/internal/modules/trip/usecase"
+	"github.com/sayeed1999/ride-sharing-golang-api/internal/modules/trip/service"
 	"gorm.io/gorm"
 )
 
@@ -23,34 +23,34 @@ func NewDIContainer(db *gorm.DB, cfg *config.Config) *DIContainer {
 	var driverRepository repository.DriverRepository = &tripPostgres.DriverRepo{DB: db}
 	var tripRequestRepository repository.TripRequestRepository = &tripPostgres.TripRequestRepo{DB: db}
 
-	// ======== Other module usecases =========
+	// ======== Other module services =========
 	authService := auth.NewUserService(db, cfg)
 
-	// ======== Usecases or services =========
-	customerSignupUsecase := &usecase.CustomerSignupUsecase{
+	// ======== Services or services =========
+	customerSignupService := &service.CustomerSignupService{
 		CustomerRepo: customerRepository,
 		AuthService:  authService,
 	}
 
-	driverSignupUsecase := &usecase.DriverSignupUsecase{
+	driverSignupService := &service.DriverSignupService{
 		DriverRepo:  driverRepository,
 		AuthService: authService,
 	}
 
-	requestTripUsecase := &usecase.RequestTripUsecase{
+	requestTripService := &service.RequestTripService{
 		TripRequestRepo: tripRequestRepository,
 	}
 
-	customerCancelTripUsecase := &usecase.CustomerCancelTrip{
+	customerCancelTripService := &service.CustomerCancelTrip{
 		TripRequestRepo: tripRequestRepository,
 	}
 
 	// ======== Handlers =========
-	customerHandler := handler.NewCustomerHandler(customerSignupUsecase)
-	driverHandler := handler.NewDriverHandler(driverSignupUsecase)
+	customerHandler := handler.NewCustomerHandler(customerSignupService)
+	driverHandler := handler.NewDriverHandler(driverSignupService)
 	tripRequestHandler := handler.NewTripRequestHandler(
-		requestTripUsecase,
-		customerCancelTripUsecase,
+		requestTripService,
+		customerCancelTripService,
 		customerRepository)
 
 	// ======== DI Container =========

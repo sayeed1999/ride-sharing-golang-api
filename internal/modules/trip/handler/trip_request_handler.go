@@ -7,7 +7,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/modules/trip/domain"
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/modules/trip/repository"
-	"github.com/sayeed1999/ride-sharing-golang-api/internal/modules/trip/usecase"
+	"github.com/sayeed1999/ride-sharing-golang-api/internal/modules/trip/service"
 )
 
 type TripRequestRequest struct {
@@ -17,12 +17,12 @@ type TripRequestRequest struct {
 }
 
 type TripRequestHandler struct {
-	RequestTripUC        *usecase.RequestTripUsecase
-	CustomerCancelTripUC *usecase.CustomerCancelTrip
+	RequestTripUC        *service.RequestTripService
+	CustomerCancelTripUC *service.CustomerCancelTrip
 	CustomerRepo         repository.CustomerRepository
 }
 
-func NewTripRequestHandler(requestTripUC *usecase.RequestTripUsecase, customerCancelTripUC *usecase.CustomerCancelTrip, customerRepo repository.CustomerRepository) *TripRequestHandler {
+func NewTripRequestHandler(requestTripUC *service.RequestTripService, customerCancelTripUC *service.CustomerCancelTrip, customerRepo repository.CustomerRepository) *TripRequestHandler {
 	return &TripRequestHandler{RequestTripUC: requestTripUC, CustomerCancelTripUC: customerCancelTripUC, CustomerRepo: customerRepo}
 }
 

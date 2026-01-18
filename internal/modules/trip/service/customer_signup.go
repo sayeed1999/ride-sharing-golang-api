@@ -1,4 +1,4 @@
-package usecase
+package service
 
 import (
 	"errors"
@@ -8,17 +8,17 @@ import (
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/modules/trip/repository"
 )
 
-// CustomerSignupUsecase handles the business logic for customer signups.
+// CustomerSignupService handles the business logic for customer signups.
 // It first registers a user in the auth module and then creates a customer
 // record in the trip module. If customer creation fails, it deletes the
 // previously created auth user as a compensating action.
-type CustomerSignupUsecase struct {
+type CustomerSignupService struct {
 	CustomerRepo repository.CustomerRepository
 	AuthService  *service.UserService // For compensating actions
 }
 
 // Signup registers an auth user and then creates a corresponding customer record.
-func (uc *CustomerSignupUsecase) Signup(email, name, password string) (*domain.Customer, error) {
+func (uc *CustomerSignupService) Signup(email, name, password string) (*domain.Customer, error) {
 	if email == "" {
 		return nil, errors.New("email is required")
 	}

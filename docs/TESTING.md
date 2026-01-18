@@ -2,7 +2,7 @@
 
 This project contains two primary test tiers used during development and CI:
 
-- Unit tests: fast, isolated tests that exercise individual usecases and helpers. These use in-memory mock data (the `repository/mocks` package) so tests stay fast and deterministic.
+- Unit tests: fast, isolated tests that exercise individual services and helpers. These use in-memory mock data (the `repository/mocks` package) so tests stay fast and deterministic.
 - End-to-end (E2E) tests: spin up a real PostgreSQL container and exercise real HTTP endpoints to simulate real behavior and provide confidence that the API works.
 
 Why this structure
@@ -22,7 +22,7 @@ Test tooling
 
 How tests are organised
 
-- `internal/modules/.../usecase/*_test.go` — unit tests using `repository/mocks`.
+- `internal/modules/.../service/*_test.go` — unit tests using `repository/mocks`.
 - `tests/e2e/*` — full E2E using testcontainers and the real database.
 
 Run tests locally

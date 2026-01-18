@@ -1,4 +1,4 @@
-package usecase
+package service
 
 import (
 	"errors"
@@ -8,14 +8,14 @@ import (
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/modules/trip/repository"
 )
 
-// DriverSignupUsecase handles driver signups including vehicle details.
-type DriverSignupUsecase struct {
+// DriverSignupService handles driver signups including vehicle details.
+type DriverSignupService struct {
 	DriverRepo  repository.DriverRepository
 	AuthService *service.UserService // For compensating actions
 }
 
 // Signup registers an auth user and then creates a corresponding driver record.
-func (uc *DriverSignupUsecase) Signup(email, name, password, vehicleType, vehicleRegistration string) (*tripdomain.Driver, error) {
+func (uc *DriverSignupService) Signup(email, name, password, vehicleType, vehicleRegistration string) (*tripdomain.Driver, error) {
 	if email == "" {
 		return nil, errors.New("email is required")
 	}

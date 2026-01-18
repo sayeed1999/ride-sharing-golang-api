@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/sayeed1999/ride-sharing-golang-api/internal/modules/trip/usecase"
+	"github.com/sayeed1999/ride-sharing-golang-api/internal/modules/trip/service"
 )
 
 type CustomerSignupRequest struct {
@@ -14,10 +14,10 @@ type CustomerSignupRequest struct {
 }
 
 type CustomerHandler struct {
-	SignupUC *usecase.CustomerSignupUsecase
+	SignupUC *service.CustomerSignupService
 }
 
-func NewCustomerHandler(signupUC *usecase.CustomerSignupUsecase) *CustomerHandler {
+func NewCustomerHandler(signupUC *service.CustomerSignupService) *CustomerHandler {
 	return &CustomerHandler{SignupUC: signupUC}
 }
 
