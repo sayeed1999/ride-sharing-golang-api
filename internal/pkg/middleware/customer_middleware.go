@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/sayeed1999/ride-sharing-golang-api/internal/app/trip/repository"
+	"github.com/sayeed1999/ride-sharing-golang-api/internal/modules/trip/repository"
 )
 
 func CustomerMiddleware(customerRepo repository.CustomerRepository) gin.HandlerFunc {

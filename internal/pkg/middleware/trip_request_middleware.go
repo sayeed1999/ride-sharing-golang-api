@@ -5,8 +5,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/sayeed1999/ride-sharing-golang-api/internal/app/trip/domain"
-	"github.com/sayeed1999/ride-sharing-golang-api/internal/app/trip/repository"
+	"github.com/sayeed1999/ride-sharing-golang-api/internal/modules/trip/domain"
+	"github.com/sayeed1999/ride-sharing-golang-api/internal/modules/trip/repository"
 )
 
 func TripRequestMiddleware(tripRequestRepo repository.TripRequestRepository) gin.HandlerFunc {

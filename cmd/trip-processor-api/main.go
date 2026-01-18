@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/sayeed1999/ride-sharing-golang-api/config"
-	tripprocessor "github.com/sayeed1999/ride-sharing-golang-api/internal/app/trip-processor"
+	tripprocessor "github.com/sayeed1999/ride-sharing-golang-api/internal/modules/trip-processor"
 
 	"github.com/gin-gonic/gin"
 )

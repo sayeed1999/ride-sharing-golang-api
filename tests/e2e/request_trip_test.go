@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/sayeed1999/ride-sharing-golang-api/internal/app/trip/domain"
+	"github.com/sayeed1999/ride-sharing-golang-api/internal/modules/trip/domain"
 	testhelper "github.com/sayeed1999/ride-sharing-golang-api/pkg/test_helper"
 	"github.com/sayeed1999/ride-sharing-golang-api/tests/e2e/setup"
 	"github.com/stretchr/testify/require"

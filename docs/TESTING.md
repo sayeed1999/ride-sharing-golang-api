@@ -22,7 +22,7 @@ Test tooling
 
 How tests are organised
 
-- `internal/app/.../usecase/*_test.go` — unit tests using `repository/mocks`.
+- `internal/modules/.../usecase/*_test.go` — unit tests using `repository/mocks`.
 - `tests/e2e/*` — full E2E using testcontainers and the real database.
 
 Run tests locally

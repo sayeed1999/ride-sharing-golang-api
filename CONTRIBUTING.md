@@ -15,17 +15,17 @@ This guide outlines the steps to add a new API endpoint to the application, foll
 
 ### 2. Domain Model Definition
 
-- Define the core data structures and business entities for your new feature in the appropriate module under `internal/app/<module>/domain/`.
+- Define the core data structures and business entities for your new feature in the appropriate module under `internal/modules/<module>/domain/`.
 - These models should be pure Go structs, representing the business domain, and should be independent of persistence or transport concerns.
 
 ### 3. Repository Layer
 
-- **Interface (`internal/app/<module>/repository/`):** Define an interface that declares the methods for interacting with the persistence layer (e.g., `SaveUser(user *domain.User) error`, `GetUserByID(id string) (*domain.User, error)`).
-- **Implementation (`internal/app/<module>/repository/postgres/`):** Implement the defined interface using PostgreSQL-specific logic. This is where you'll write SQL queries or use an ORM/query builder. Ensure proper error handling and transaction management.
+- **Interface (`internal/modules/<module>/repository/`):** Define an interface that declares the methods for interacting with the persistence layer (e.g., `SaveUser(user *domain.User) error`, `GetUserByID(id string) (*domain.User, error)`).
+- **Implementation (`internal/modules/<module>/repository/postgres/`):** Implement the defined interface using PostgreSQL-specific logic. This is where you'll write SQL queries or use an ORM/query builder. Ensure proper error handling and transaction management.
 
 ### 4. Usecase Layer (Business Logic)
 
-- Implement the business logic and application-specific rules in `internal/app/<module>/usecase/`.
+- Implement the business logic and application-specific rules in `internal/modules/<module>/usecase/`.
 - A usecase should represent a single, cohesive business operation (e.g., `RegisterUser`, `CreateTrip`).
 - It orchestrates interactions between domain models and repositories. Usecases should be independent of HTTP details.
 - **Functional Testing:** Usecases should be thoroughly functional tested to ensure the correctness of the business logic, typically by mocking the repository interfaces.
@@ -36,29 +36,29 @@ This layer is responsible for exposing the application's functionality through v
 
 #### 5.1. HTTP Endpoints
 
-- **DTOs (`internal/app/<module>/handler/http/dto.go`):** Define Data Transfer Objects for request and response payloads. These DTOs handle data serialization/deserialization and validation for the API.
-- **Handler (`internal/app/<module>/handler/http/`):** Create an HTTP handler function or method that:
-    - Parses and validates the incoming HTTP request using the defined DTOs.
-    - Calls the appropriate usecase to execute the business logic.
-    - Translates the usecase's result into an HTTP response, including proper status codes and error messages.
-- **Routes (`internal/app/<module>/handler/http/routes.go`):** Register the new API endpoint by defining its path, HTTP method (GET, POST, PUT, DELETE), and associating it with your handler function.
+- **DTOs (`internal/modules/<module>/handler/http/dto.go`):** Define Data Transfer Objects for request and response payloads. These DTOs handle data serialization/deserialization and validation for the API.
+- **Handler (`internal/modules/<module>/handler/http/`):** Create an HTTP handler function or method that:
+  - Parses and validates the incoming HTTP request using the defined DTOs.
+  - Calls the appropriate usecase to execute the business logic.
+  - Translates the usecase's result into an HTTP response, including proper status codes and error messages.
+- **Routes (`internal/modules/<module>/handler/http/routes.go`):** Register the new API endpoint by defining its path, HTTP method (GET, POST, PUT, DELETE), and associating it with your handler function.
 
 #### 5.2. GraphQL Endpoints
 
-- **Schema Definition (`internal/app/<module>/handler/graphql/schema.graphql`):** Define your GraphQL types, queries, mutations, and subscriptions in a `.graphql` schema file.
-- **Resolvers (`internal/app/<module>/handler/graphql/resolver.go`):** Implement resolver functions that fetch data for the fields defined in your schema. Resolvers should interact with the usecase layer to retrieve and manipulate data.
-- **Module Integration:** Ensure your GraphQL schema and resolvers are correctly integrated into the main GraphQL server setup, typically within `internal/app/<module>/module.go` or a dedicated GraphQL module.
+- **Schema Definition (`internal/modules/<module>/handler/graphql/schema.graphql`):** Define your GraphQL types, queries, mutations, and subscriptions in a `.graphql` schema file.
+- **Resolvers (`internal/modules/<module>/handler/graphql/resolver.go`):** Implement resolver functions that fetch data for the fields defined in your schema. Resolvers should interact with the usecase layer to retrieve and manipulate data.
+- **Module Integration:** Ensure your GraphQL schema and resolvers are correctly integrated into the main GraphQL server setup, typically within `internal/modules/<module>/module.go` or a dedicated GraphQL module.
 
 #### 5.3. gRPC Endpoints
 
-- **Protocol Buffer Definition (`internal/app/<module>/handler/grpc/<service>.proto`):** Define your gRPC services and messages using Protocol Buffers. This file specifies the service interface and the structure of the request and response messages.
-- **Service Implementation (`internal/app/<module>/handler/grpc/service.go`):** Implement the gRPC service interface generated from your `.proto` file. This service should call the appropriate usecase to perform business logic.
-- **Server Registration:** Register your gRPC service with the main gRPC server, typically within `internal/app/<module>/module.go` or a dedicated gRPC module.
+- **Protocol Buffer Definition (`internal/modules/<module>/handler/grpc/<service>.proto`):** Define your gRPC services and messages using Protocol Buffers. This file specifies the service interface and the structure of the request and response messages.
+- **Service Implementation (`internal/modules/<module>/handler/grpc/service.go`):** Implement the gRPC service interface generated from your `.proto` file. This service should call the appropriate usecase to perform business logic.
+- **Server Registration:** Register your gRPC service with the main gRPC server, typically within `internal/modules/<module>/module.go` or a dedicated gRPC module.
 
 ### 6. Module Definition and Route Exposure
 
-- In `internal/app/<module>/module.go`, the primary responsibility is to expose the module's routes to the main application router. This file acts as the entry point for integrating the module's API endpoints into the overall application.
-- Dependency injection for handlers (e.g., HTTP, GraphQL, gRPC) is now handled within their respective handler packages (e.g., `internal/app/<module>/handler/http/routes.go`). The `module.go` will call a function from the handler package (e.g., `triphttp.RegisterAllHTTPRoutes`) to register the routes, passing in necessary core dependencies like the database connection and configuration.
+- In `internal/modules/<module>/module.go`, the primary responsibility is to expose the module's routes to the main application router. This file acts as the entry point for integrating the module's API endpoints into the overall application.
+- Dependency injection for handlers (e.g., HTTP, GraphQL, gRPC) is now handled within their respective handler packages (e.g., `internal/modules/<module>/handler/http/routes.go`). The `module.go` will call a function from the handler package (e.g., `triphttp.RegisterAllHTTPRoutes`) to register the routes, passing in necessary core dependencies like the database connection and configuration.
 
 ### 7. Testing
 
