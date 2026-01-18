@@ -9,7 +9,7 @@ import (
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/modules/trip/repository"
 )
 
-func TripRequestMiddleware(tripRequestRepo repository.TripRequestRepository) gin.HandlerFunc {
+func TripRequestMiddleware(tripRequestRepo repository.ITripRequestRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		// Step 1: Extract trip ID from URL params & validate it

@@ -19,11 +19,11 @@ type TripRequestRequest struct {
 type TripRequestHandler struct {
 	RequestTripUC        *service.RequestTripService
 	CustomerCancelTripUC *service.CustomerCancelTrip
-	CustomerRepo         repository.CustomerRepository
+	CustomerRepository   repository.ICustomerRepository
 }
 
-func NewTripRequestHandler(requestTripUC *service.RequestTripService, customerCancelTripUC *service.CustomerCancelTrip, customerRepo repository.CustomerRepository) *TripRequestHandler {
-	return &TripRequestHandler{RequestTripUC: requestTripUC, CustomerCancelTripUC: customerCancelTripUC, CustomerRepo: customerRepo}
+func NewTripRequestHandler(requestTripUC *service.RequestTripService, customerCancelTripUC *service.CustomerCancelTrip, customerRepo repository.ICustomerRepository) *TripRequestHandler {
+	return &TripRequestHandler{RequestTripUC: requestTripUC, CustomerCancelTripUC: customerCancelTripUC, CustomerRepository: customerRepo}
 }
 
 func (h *TripRequestHandler) RequestTrip(c *gin.Context) {

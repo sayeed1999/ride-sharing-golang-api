@@ -7,7 +7,7 @@ import (
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/modules/trip/repository"
 )
 
-func CustomerMiddleware(customerRepo repository.CustomerRepository) gin.HandlerFunc {
+func CustomerMiddleware(customerRepo repository.ICustomerRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userEmail, ok := c.MustGet("x-user-email").(string)
 		if !ok {

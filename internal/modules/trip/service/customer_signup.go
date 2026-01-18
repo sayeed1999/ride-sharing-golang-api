@@ -13,8 +13,8 @@ import (
 // record in the trip module. If customer creation fails, it deletes the
 // previously created auth user as a compensating action.
 type CustomerSignupService struct {
-	CustomerRepo repository.CustomerRepository
-	AuthService  *service.UserService // For compensating actions
+	CustomerRepository repository.ICustomerRepository
+	AuthService        *service.UserService // For compensating actions
 }
 
 // Signup registers an auth user and then creates a corresponding customer record.
@@ -36,7 +36,7 @@ func (uc *CustomerSignupService) Signup(email, name, password string) (*domain.C
 		AuthUserID: &authUser.ID,
 	}
 
-	newCustomer, err := uc.CustomerRepo.CreateCustomer(customer)
+	newCustomer, err := uc.CustomerRepository.CreateCustomer(customer)
 	if err != nil {
 		// Compensating action: delete the created auth user
 		_ = uc.AuthService.DeleteUser(authUser.ID)

@@ -5,7 +5,6 @@ import (
 	"github.com/sayeed1999/ride-sharing-golang-api/config"
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/modules/trip/di"
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/modules/trip/repository"
-	trippostgres "github.com/sayeed1999/ride-sharing-golang-api/internal/modules/trip/repository/postgres"
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/pkg/middleware"
 	public_middleware "github.com/sayeed1999/ride-sharing-golang-api/pkg/middleware"
 	"gorm.io/gorm"
@@ -14,8 +13,8 @@ import (
 // RegisterAllHTTPRoutes registers all HTTP routes for the trip module.
 // It performs dependency injection for the HTTP diContainer internally.
 func registerAllHTTPRoutes(rg *gin.RouterGroup, db *gorm.DB, cfg *config.Config) {
-	var custRepo repository.CustomerRepository = &trippostgres.CustomerRepo{DB: db}
-	var tripRequestRepo repository.TripRequestRepository = &trippostgres.TripRequestRepo{DB: db}
+	var custRepo repository.ICustomerRepository = &repository.CustomerRepository{DB: db}
+	var tripRequestRepo repository.ITripRequestRepository = &repository.TripRequestRepository{DB: db}
 
 	diContainer := di.NewDIContainer(db, cfg)
 

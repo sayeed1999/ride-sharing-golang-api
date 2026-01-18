@@ -10,8 +10,8 @@ import (
 
 // DriverSignupService handles driver signups including vehicle details.
 type DriverSignupService struct {
-	DriverRepo  repository.DriverRepository
-	AuthService *service.UserService // For compensating actions
+	DriverRepository repository.IDriverRepository
+	AuthService      *service.UserService // For compensating actions
 }
 
 // Signup registers an auth user and then creates a corresponding driver record.
@@ -43,7 +43,7 @@ func (uc *DriverSignupService) Signup(email, name, password, vehicleType, vehicl
 		VehicleRegistration: vehicleRegistration,
 	}
 
-	created, err := uc.DriverRepo.CreateDriver(driver)
+	created, err := uc.DriverRepository.CreateDriver(driver)
 	if err != nil {
 		// Compensating action: delete the created auth user
 		_ = uc.AuthService.DeleteUser(authUser.ID)

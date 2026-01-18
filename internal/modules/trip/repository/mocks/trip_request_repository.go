@@ -6,11 +6,11 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-type TripRequestRepository struct {
+type ITripRequestRepository struct {
 	mock.Mock
 }
 
-func (m *TripRequestRepository) Create(tr *domain.TripRequest) (*domain.TripRequest, error) {
+func (m *ITripRequestRepository) Create(tr *domain.TripRequest) (*domain.TripRequest, error) {
 	args := m.Called(tr)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -18,7 +18,7 @@ func (m *TripRequestRepository) Create(tr *domain.TripRequest) (*domain.TripRequ
 	return args.Get(0).(*domain.TripRequest), args.Error(1)
 }
 
-func (m *TripRequestRepository) FindByID(id uuid.UUID) (*domain.TripRequest, error) {
+func (m *ITripRequestRepository) FindByID(id uuid.UUID) (*domain.TripRequest, error) {
 	args := m.Called(id)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -26,7 +26,7 @@ func (m *TripRequestRepository) FindByID(id uuid.UUID) (*domain.TripRequest, err
 	return args.Get(0).(*domain.TripRequest), args.Error(1)
 }
 
-func (m *TripRequestRepository) Update(tr *domain.TripRequest) (*domain.TripRequest, error) {
+func (m *ITripRequestRepository) Update(tr *domain.TripRequest) (*domain.TripRequest, error) {
 	args := m.Called(tr)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -34,7 +34,7 @@ func (m *TripRequestRepository) Update(tr *domain.TripRequest) (*domain.TripRequ
 	return args.Get(0).(*domain.TripRequest), args.Error(1)
 }
 
-func (m *TripRequestRepository) UpdateTripRequestStatus(tripID uuid.UUID, status domain.TripRequestStatus) error {
+func (m *ITripRequestRepository) UpdateTripRequestStatus(tripID uuid.UUID, status domain.TripRequestStatus) error {
 	args := m.Called(tripID, status)
 	return args.Error(0)
 }

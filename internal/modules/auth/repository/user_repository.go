@@ -1,10 +1,10 @@
 package repository
 
 import (
+	"errors"
 	"github.com/google/uuid"
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/modules/auth/domain"
 	"gorm.io/gorm"
-	"errors"
 )
 
 // IUserRepository defines the interface for user data operations

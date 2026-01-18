@@ -11,13 +11,13 @@ import (
 )
 
 type UserService struct {
-	UserRepository                  repository.IUserRepository
+	UserRepository            repository.IUserRepository
 	RequireRoleOnRegistration bool
 }
 
 func NewUserService(userRepo repository.IUserRepository, requireRoleOnRegistration bool) *UserService {
 	return &UserService{
-		UserRepository:                  userRepo,
+		UserRepository:            userRepo,
 		RequireRoleOnRegistration: requireRoleOnRegistration,
 	}
 }

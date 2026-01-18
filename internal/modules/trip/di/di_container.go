@@ -5,7 +5,6 @@ import (
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/modules/auth"
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/modules/trip/handler"
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/modules/trip/repository"
-	tripPostgres "github.com/sayeed1999/ride-sharing-golang-api/internal/modules/trip/repository/postgres"
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/modules/trip/service"
 	"gorm.io/gorm"
 )
@@ -19,30 +18,30 @@ type DIContainer struct {
 func NewDIContainer(db *gorm.DB, cfg *config.Config) *DIContainer {
 
 	// ======== Repositories =========
-	var customerRepository repository.CustomerRepository = &tripPostgres.CustomerRepo{DB: db}
-	var driverRepository repository.DriverRepository = &tripPostgres.DriverRepo{DB: db}
-	var tripRequestRepository repository.TripRequestRepository = &tripPostgres.TripRequestRepo{DB: db}
+	var customerRepository repository.ICustomerRepository = &repository.CustomerRepository{DB: db}
+	var driverRepository repository.IDriverRepository = &repository.DriverRepository{DB: db}
+	var tripRequestRepository repository.ITripRequestRepository = &repository.TripRequestRepository{DB: db}
 
 	// ======== Other module services =========
 	authService := auth.NewUserService(db, cfg)
 
 	// ======== Services or services =========
 	customerSignupService := &service.CustomerSignupService{
-		CustomerRepo: customerRepository,
-		AuthService:  authService,
+		CustomerRepository: customerRepository,
+		AuthService:        authService,
 	}
 
 	driverSignupService := &service.DriverSignupService{
-		DriverRepo:  driverRepository,
-		AuthService: authService,
+		DriverRepository: driverRepository,
+		AuthService:      authService,
 	}
 
 	requestTripService := &service.RequestTripService{
-		TripRequestRepo: tripRequestRepository,
+		TripRequestRepository: tripRequestRepository,
 	}
 
 	customerCancelTripService := &service.CustomerCancelTrip{
-		TripRequestRepo: tripRequestRepository,
+		TripRequestRepository: tripRequestRepository,
 	}
 
 	// ======== Handlers =========

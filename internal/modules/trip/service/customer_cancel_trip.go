@@ -10,11 +10,11 @@ import (
 )
 
 type CustomerCancelTrip struct {
-	TripRequestRepo repository.TripRequestRepository
+	TripRequestRepository repository.ITripRequestRepository
 }
 
 func (uc *CustomerCancelTrip) Execute(ctx context.Context, tripID uuid.UUID, customerID uuid.UUID) error {
-	tripRequest, err := uc.TripRequestRepo.FindByID(tripID)
+	tripRequest, err := uc.TripRequestRepository.FindByID(tripID)
 	if err != nil {
 		return err
 	}
@@ -26,5 +26,5 @@ func (uc *CustomerCancelTrip) Execute(ctx context.Context, tripID uuid.UUID, cus
 		return errors.New("trip cannot be cancelled at this stage")
 	}
 
-	return uc.TripRequestRepo.UpdateTripRequestStatus(tripID, domain.CUSTOMER_CANCELED)
+	return uc.TripRequestRepository.UpdateTripRequestStatus(tripID, domain.CUSTOMER_CANCELED)
 }

@@ -8,7 +8,7 @@ import (
 
 // RequestTripService handles the business logic for a customer to request a trip.
 type RequestTripService struct {
-	TripRequestRepo repository.TripRequestRepository
+	TripRequestRepository repository.ITripRequestRepository
 }
 
 // Execute creates a new trip request.
@@ -20,7 +20,7 @@ func (uc *RequestTripService) Execute(customerID uuid.UUID, origin, destination 
 		Status:      domain.NO_DRIVER_FOUND, // default status
 	}
 
-	createdTripRequest, err := uc.TripRequestRepo.Create(tripRequest)
+	createdTripRequest, err := uc.TripRequestRepository.Create(tripRequest)
 	if err != nil {
 		return nil, err
 	}
