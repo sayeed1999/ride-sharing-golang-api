@@ -1,5 +1,5 @@
 ### ─────────────────────────────────────────────
-### Multi-stage Dockerfile for core-api
+### Multi-stage Dockerfile for api
 ### Builds a minimal and production-ready Go container image
 ### ─────────────────────────────────────────────
 
@@ -26,7 +26,7 @@ COPY . .
 
 # Build the Go binary for Linux, statically linked (no CGO dependencies)
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
-    go build -v -o /out/core-api ./cmd/core-api
+    go build -v -o /out/app ./cmd/app
 
 
 ## ────────────────
@@ -39,10 +39,10 @@ FROM alpine:3.22
 RUN apk add --no-cache ca-certificates
 
 # Copy only the compiled Go binary from the builder stage
-COPY --from=builder /out/core-api /usr/local/bin/core-api
+COPY --from=builder /out/app /usr/local/bin/app
 
 # Document the port the service listens on (informational)
 EXPOSE 8080
 
 # Set the container entrypoint to start the Go API
-ENTRYPOINT ["/usr/local/bin/core-api"]
+ENTRYPOINT ["/usr/local/bin/app"]

@@ -22,11 +22,11 @@ services:
     ports:
       - "8081:80"
 
-  core-api:
+  api:
     build:
       context: ../../
       dockerfile: deployments/docker/Dockerfile
-    # image: ride-sharing-core-api:latest
+    # image: ride-sharing-api:latest
     container_name: ride_sharing_core_api
     depends_on:
       - db

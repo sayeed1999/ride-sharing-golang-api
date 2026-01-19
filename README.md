@@ -49,7 +49,7 @@ While running docker compose, docker will omit the prefix **RideProcessingServic
 ## Run the service without Docker
 
 To run the project directly from terminal: -
-Open a terminal from this directory and run `go run ./cmd/modules/.`
+Open a terminal from this directory and run `go run ./cmd/app/.`
 
 The api will be running on `localhost:8080`.
 
