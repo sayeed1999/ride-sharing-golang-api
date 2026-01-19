@@ -14,10 +14,10 @@ type CustomerSignupRequest struct {
 }
 
 type CustomerHandler struct {
-	CustomerService *service.CustomerService
+	CustomerService service.ICustomerService
 }
 
-func NewCustomerHandler(customerService *service.CustomerService) *CustomerHandler {
+func NewCustomerHandler(customerService service.ICustomerService) *CustomerHandler {
 	return &CustomerHandler{CustomerService: customerService}
 }
 

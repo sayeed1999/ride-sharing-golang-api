@@ -8,24 +8,28 @@ import (
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/modules/trip/repository"
 )
 
+type ICustomerService interface {
+	Signup(email, name, password string) (*domain.Customer, error)
+}
+
 // CustomerService handles the business logic for customer signups.
 // It first registers a user in the auth module and then creates a customer
 // record in the trip module. If customer creation fails, it deletes the
 // previously created auth user as a compensating action.
-type CustomerService struct {
+type customerService struct {
 	CustomerRepository repository.ICustomerRepository
 	AuthService        *service.UserService // For compensating actions
 }
 
-func NewCustomerService(customerRepo repository.ICustomerRepository, authService *service.UserService) *CustomerService {
-	return &CustomerService{
+func NewCustomerService(customerRepo repository.ICustomerRepository, authService *service.UserService) ICustomerService {
+	return &customerService{
 		CustomerRepository: customerRepo,
 		AuthService:        authService,
 	}
 }
 
 // Signup registers an auth user and then creates a corresponding customer record.
-func (uc *CustomerService) Signup(email, name, password string) (*domain.Customer, error) {
+func (uc *customerService) Signup(email, name, password string) (*domain.Customer, error) {
 	if email == "" {
 		return nil, errors.New("email is required")
 	}

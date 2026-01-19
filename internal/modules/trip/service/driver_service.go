@@ -8,21 +8,25 @@ import (
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/modules/trip/repository"
 )
 
+type IDriverService interface {
+	Signup(email, name, password, vehicleType, vehicleRegistration string) (*tripdomain.Driver, error)
+}
+
 // DriverService handles driver signups including vehicle details.
-type DriverService struct {
+type driverService struct {
 	DriverRepository repository.IDriverRepository
 	AuthService      *service.UserService // For compensating actions
 }
 
-func NewDriverService(driverRepo repository.IDriverRepository, authService *service.UserService) *DriverService {
-	return &DriverService{
+func NewDriverService(driverRepo repository.IDriverRepository, authService *service.UserService) IDriverService {
+	return &driverService{
 		DriverRepository: driverRepo,
 		AuthService:      authService,
 	}
 }
 
 // Signup registers an auth user and then creates a corresponding driver record.
-func (uc *DriverService) Signup(email, name, password, vehicleType, vehicleRegistration string) (*tripdomain.Driver, error) {
+func (uc *driverService) Signup(email, name, password, vehicleType, vehicleRegistration string) (*tripdomain.Driver, error) {
 	if email == "" {
 		return nil, errors.New("email is required")
 	}

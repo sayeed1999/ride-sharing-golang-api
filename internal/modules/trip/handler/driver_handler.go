@@ -16,10 +16,10 @@ type DriverSignupRequest struct {
 }
 
 type DriverHandler struct {
-	DriverService *service.DriverService
+	DriverService service.IDriverService
 }
 
-func NewDriverHandler(driverService *service.DriverService) *DriverHandler {
+func NewDriverHandler(driverService service.IDriverService) *DriverHandler {
 	return &DriverHandler{DriverService: driverService}
 }
 

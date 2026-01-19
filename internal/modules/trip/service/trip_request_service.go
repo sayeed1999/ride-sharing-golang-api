@@ -14,18 +14,18 @@ type ITripRequestService interface {
 	CancelTripRequest(ctx context.Context, tripID uuid.UUID, customerID uuid.UUID) error
 }
 
-type TripRequestService struct {
+type tripRequestService struct {
 	TripRequestRepository repository.ITripRequestRepository
 }
 
-func NewTripRequestService(tripRequestRepo repository.ITripRequestRepository) *TripRequestService {
-	return &TripRequestService{
+func NewTripRequestService(tripRequestRepo repository.ITripRequestRepository) ITripRequestService {
+	return &tripRequestService{
 		TripRequestRepository: tripRequestRepo,
 	}
 }
 
 // RequestTrip creates a new trip request.
-func (s *TripRequestService) RequestTrip(customerID uuid.UUID, origin, destination string) (*domain.TripRequest, error) {
+func (s *tripRequestService) RequestTrip(customerID uuid.UUID, origin, destination string) (*domain.TripRequest, error) {
 	tripRequest := &domain.TripRequest{
 		CustomerID:  customerID,
 		Origin:      origin,
@@ -42,7 +42,7 @@ func (s *TripRequestService) RequestTrip(customerID uuid.UUID, origin, destinati
 }
 
 // CustomerCancelTrip handles the business logic for a customer to cancel a trip request.
-func (s *TripRequestService) CancelTripRequest(ctx context.Context, tripID uuid.UUID, customerID uuid.UUID) error {
+func (s *tripRequestService) CancelTripRequest(ctx context.Context, tripID uuid.UUID, customerID uuid.UUID) error {
 	tripRequest, err := s.TripRequestRepository.FindByID(tripID)
 	if err != nil {
 		return err
