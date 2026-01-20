@@ -7,3 +7,13 @@ type DriverSignupRequest struct {
 	VehicleType         string `json:"vehicle_type" binding:"required"`
 	VehicleRegistration string `json:"vehicle_registration" binding:"required"`
 }
+
+func NewDriverSignupRequest(email, name, password, vehicleType, vehicleRegistration string) *DriverSignupRequest {
+	return &DriverSignupRequest{
+		Email:               email,
+		Name:                name,
+		Password:            password,
+		VehicleType:         vehicleType,
+		VehicleRegistration: vehicleRegistration,
+	}
+}
