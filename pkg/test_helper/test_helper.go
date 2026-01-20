@@ -12,35 +12,42 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// DoJSONRequestWithAuth is a helper to make JSON requests with an Authorization header
-func DoJSONRequestWithAuth(t *testing.T, router *gin.Engine, method, path string, payload interface{}, token string) *httptest.ResponseRecorder {
+// DoJSONRequest is a small helper to marshal payload and perform an HTTP request
+func DoJSONRequest(t testing.TB, handler http.Handler, method, path string, payload interface{}) *httptest.ResponseRecorder {
+	t.Helper() // marks this function as a test helper
+
 	var reqBody io.Reader
 	if payload != nil {
-		jsonPayload, err := json.Marshal(payload)
+		body, err := json.Marshal(payload)
 		require.NoError(t, err)
-		reqBody = bytes.NewBuffer(jsonPayload)
+		reqBody = bytes.NewReader(body)
 	}
 
-	req, _ := http.NewRequest(method, path, reqBody)
+	req := httptest.NewRequest(method, path, reqBody)
+	req.Header.Set("Content-Type", "application/json")
+	
+	w := httptest.NewRecorder()
+	handler.ServeHTTP(w, req)
+	return w
+}
+
+// DoJSONRequestWithAuth is a helper to make JSON requests with an Authorization header
+func DoJSONRequestWithAuth(t *testing.T, router *gin.Engine, method, path string, payload interface{}, token string) *httptest.ResponseRecorder {
+	t.Helper() // marks this function as a test helper
+
+	var reqBody io.Reader
+	if payload != nil {
+		body, err := json.Marshal(payload)
+		require.NoError(t, err)
+		reqBody = bytes.NewReader(body)
+	}
+
+	req := httptest.NewRequest(method, path, reqBody)
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+token)
 
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
-	return w
-}
-
-// DoJSONRequest is a small helper to marshal payload and perform an HTTP request
-func DoJSONRequest(t testing.TB, handler http.Handler, method, path string, payload interface{}) *httptest.ResponseRecorder {
-	t.Helper() // marks this function as a test helper
-
-	body, err := json.Marshal(payload)
-	require.NoError(t, err)
-
-	req := httptest.NewRequest(method, path, bytes.NewReader(body))
-	req.Header.Set("Content-Type", "application/json")
-	w := httptest.NewRecorder()
-	handler.ServeHTTP(w, req)
 	return w
 }
 
