@@ -6,14 +6,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/modules/trip/domain"
+	"github.com/sayeed1999/ride-sharing-golang-api/internal/modules/trip/dto"
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/modules/trip/service"
 )
-
-type TripRequestRequest struct {
-	CustomerID  string `json:"customer_id" binding:"required"`
-	Origin      string `json:"origin" binding:"required"`
-	Destination string `json:"destination" binding:"required"`
-}
 
 type TripRequestHandler struct {
 	TripRequestService service.ITripRequestService
@@ -26,7 +21,7 @@ func NewTripRequestHandler(tripRequestService service.ITripRequestService) *Trip
 func (h *TripRequestHandler) RequestTrip(c *gin.Context) {
 	customer, _ := c.MustGet("customer").(*domain.Customer) // assumed to be set by customer middleware
 
-	var req TripRequestRequest
+	var req dto.TripRequestRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
 		return

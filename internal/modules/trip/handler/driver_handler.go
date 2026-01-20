@@ -4,16 +4,9 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/sayeed1999/ride-sharing-golang-api/internal/modules/trip/dto"
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/modules/trip/service"
 )
-
-type DriverSignupRequest struct {
-	Email               string `json:"email" binding:"required,email"`
-	Name                string `json:"name" binding:"required"`
-	Password            string `json:"password" binding:"required,min=6"`
-	VehicleType         string `json:"vehicle_type" binding:"required"`
-	VehicleRegistration string `json:"vehicle_registration" binding:"required"`
-}
 
 type DriverHandler struct {
 	DriverService service.IDriverService
@@ -24,7 +17,7 @@ func NewDriverHandler(driverService service.IDriverService) *DriverHandler {
 }
 
 func (h *DriverHandler) DriverSignup(c *gin.Context) {
-	var req DriverSignupRequest
+	var req dto.DriverSignupRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
 		return
