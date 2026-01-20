@@ -31,15 +31,16 @@ func registerAllHTTPRoutes(rg *gin.RouterGroup, db *gorm.DB, cfg *config.Config)
 	tripRequests := rg.Group("/trip-requests")
 	tripRequests.Use(
 		public_middleware.AuthMiddleware(cfg.Auth.JWTSecret),
-		middleware.CustomerMiddleware(custRepo)) // sets customer in context !!
+		middleware.CustomerMiddleware(custRepo),
+	)
 	{
 		tripRequests.POST("", diContainer.TripRequestHandler.RequestTrip)
-		tripRequests.DELETE("/:trip_request_id",
-			middleware.TripRequestMiddleware(tripRequestRepo), // sets trip_request in context !!
-			diContainer.TripRequestHandler.CancelTripRequest)
 
-		tripRequests.GET("/:trip_request_id",
-			middleware.TripRequestMiddleware(tripRequestRepo), // sets trip_request in context !!
-			diContainer.TripRequestHandler.GetDetails)
+		tripRequestWithID := tripRequests.Group("/:trip_request_id")
+		tripRequestWithID.Use(middleware.TripRequestMiddleware(tripRequestRepo))
+		{
+			tripRequestWithID.GET("", diContainer.TripRequestHandler.GetDetails)
+			tripRequestWithID.DELETE("", diContainer.TripRequestHandler.CancelTripRequest)
+		}
 	}
 }
