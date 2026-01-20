@@ -34,7 +34,7 @@ func (m *ITripRequestRepository) Update(tr *domain.TripRequest) (*domain.TripReq
 	return args.Get(0).(*domain.TripRequest), args.Error(1)
 }
 
-func (m *ITripRequestRepository) UpdateTripRequestStatus(tripID uuid.UUID, status domain.TripRequestStatus) error {
-	args := m.Called(tripID, status)
+func (m *ITripRequestRepository) UpdateTripRequestStatus(tripRequestID uuid.UUID, status domain.TripRequestStatus) error {
+	args := m.Called(tripRequestID, status)
 	return args.Error(0)
 }

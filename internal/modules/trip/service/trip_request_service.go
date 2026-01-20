@@ -11,7 +11,7 @@ import (
 
 type ITripRequestService interface {
 	RequestTrip(customerID uuid.UUID, origin, destination string) (*domain.TripRequest, error)
-	CancelTripRequest(ctx context.Context, tripID uuid.UUID, customerID uuid.UUID) error
+	CancelTripRequest(ctx context.Context, tripRequest *domain.TripRequest) error
 }
 
 type tripRequestService struct {
@@ -42,12 +42,7 @@ func (s *tripRequestService) RequestTrip(customerID uuid.UUID, origin, destinati
 }
 
 // CustomerCancelTrip handles the business logic for a customer to cancel a trip request.
-func (s *tripRequestService) CancelTripRequest(ctx context.Context, tripID uuid.UUID, customerID uuid.UUID) error {
-	tripRequest, err := s.TripRequestRepository.FindByID(tripID)
-	if err != nil {
-		return err
-	}
-
+func (s *tripRequestService) CancelTripRequest(ctx context.Context, tripRequest *domain.TripRequest) error {
 	// trip request middleware validates that the trip belongs to the customer
 
 	// Only allow cancellation if the trip is in NO_DRIVER_FOUND state
@@ -55,5 +50,5 @@ func (s *tripRequestService) CancelTripRequest(ctx context.Context, tripID uuid.
 		return errors.New("trip cannot be cancelled at this stage")
 	}
 
-	return s.TripRequestRepository.UpdateTripRequestStatus(tripID, domain.CUSTOMER_CANCELED)
+	return s.TripRequestRepository.UpdateTripRequestStatus(tripRequest.ID, domain.CUSTOMER_CANCELED)
 }

@@ -12,7 +12,7 @@ type ITripRequestRepository interface {
 	Create(tr *domain.TripRequest) (*domain.TripRequest, error)
 	FindByID(id uuid.UUID) (*domain.TripRequest, error)
 	Update(tr *domain.TripRequest) (*domain.TripRequest, error)
-	UpdateTripRequestStatus(tripID uuid.UUID, status domain.TripRequestStatus) error
+	UpdateTripRequestStatus(tripRequestID uuid.UUID, status domain.TripRequestStatus) error
 }
 
 type TripRequestRepository struct {
@@ -41,6 +41,6 @@ func (r *TripRequestRepository) Update(tr *domain.TripRequest) (*domain.TripRequ
 	return tr, nil
 }
 
-func (r *TripRequestRepository) UpdateTripRequestStatus(tripID uuid.UUID, status domain.TripRequestStatus) error {
-	return r.DB.Model(&domain.TripRequest{}).Where("id = ?", tripID).Updates(map[string]interface{}{"status": status, "updated_at": time.Now()}).Error
+func (r *TripRequestRepository) UpdateTripRequestStatus(tripRequestID uuid.UUID, status domain.TripRequestStatus) error {
+	return r.DB.Model(&domain.TripRequest{}).Where("id = ?", tripRequestID).Updates(map[string]interface{}{"status": status, "updated_at": time.Now()}).Error
 }

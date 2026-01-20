@@ -13,11 +13,11 @@ func TripRequestMiddleware(tripRequestRepo repository.ITripRequestRepository) gi
 	return func(c *gin.Context) {
 
 		// Step 1: Extract trip ID from URL params & validate it
-		tripIdStr := c.Param("tripID")
+		tripIdStr := c.Param("trip_request_id")
 
 		tripId, err := uuid.Parse(tripIdStr)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid trip ID"})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid trip_request_id"})
 			c.Abort()
 			return
 		}
@@ -46,6 +46,8 @@ func TripRequestMiddleware(tripRequestRepo repository.ITripRequestRepository) gi
 			return
 		}
 
+		// set trip request in context for further handlers to use
+		c.Set("trip_request", tripRequest)
 		c.Next()
 	}
 }

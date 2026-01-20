@@ -23,6 +23,7 @@ func CustomerMiddleware(customerRepo repository.ICustomerRepository) gin.Handler
 			return
 		}
 
+		// set customer in context for further handlers to use
 		c.Set("customer", customer)
 		c.Next()
 	}

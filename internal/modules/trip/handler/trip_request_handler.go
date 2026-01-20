@@ -43,12 +43,13 @@ func (h *TripRequestHandler) RequestTrip(c *gin.Context) {
 }
 
 func (h *TripRequestHandler) CancelTripRequest(c *gin.Context) {
-	tripIDStr := c.Param("tripID")
-	tripID, _ := uuid.Parse(tripIDStr) // assumed to be validated by trip request middleware!!
+	tripRequest, ok := c.MustGet("trip_request").(*domain.TripRequest)
+	if !ok {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "trip request not found in context"})
+		return
+	}
 
-	customer, _ := c.MustGet("customer").(*domain.Customer) // assumed to be set by middleware
-
-	if err := h.TripRequestService.CancelTripRequest(c.Request.Context(), tripID, customer.ID); err != nil {
+	if err := h.TripRequestService.CancelTripRequest(c.Request.Context(), tripRequest); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
