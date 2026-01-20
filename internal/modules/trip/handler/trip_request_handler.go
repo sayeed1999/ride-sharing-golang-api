@@ -21,15 +21,13 @@ func NewTripRequestHandler(tripRequestService service.ITripRequestService) *Trip
 func (h *TripRequestHandler) RequestTrip(c *gin.Context) {
 	customer, _ := c.MustGet("customer").(*domain.Customer) // assumed to be set by customer middleware
 
-	var req dto.TripRequestRequest
+	var req dto.TripRequestDTO
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
 		return
 	}
 
-	req.CustomerID = customer.ID.String()
-
-	customerUUID, err := uuid.Parse(req.CustomerID)
+	customerUUID, err := uuid.Parse(customer.ID.String())
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid customer ID"})
 		return

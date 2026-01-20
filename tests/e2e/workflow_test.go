@@ -44,6 +44,9 @@ func Test_ValidWorkflow_CustomerCancelRideBeforeDriverFound_E2E(t *testing.T) {
 	assertValidJWT(t, driverJwtToken, "test_jwt_secret_change_me", "driver1@example.com")
 
 	// Request a ride
+	tripRequestPayload := dto.NewTripRequestDTO("Point A", "Point B")
+	w = testhelper.DoJSONRequestWithAuth(t, testApp.Router(), "POST", "/trip-requests", tripRequestPayload, customerJwtToken)
+	testhelper.AssertAndLogErrors(t, w, 201)
 
 	// Cancel the ride before a driver is found
 
