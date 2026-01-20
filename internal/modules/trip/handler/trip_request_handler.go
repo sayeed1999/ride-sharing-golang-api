@@ -56,3 +56,15 @@ func (h *TripRequestHandler) CancelTripRequest(c *gin.Context) {
 
 	c.Status(http.StatusNoContent)
 }
+
+func (h *TripRequestHandler) GetDetails(c *gin.Context) {
+	tripRequest, ok := c.MustGet("trip_request").(*domain.TripRequest)
+	if !ok {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "trip request not found in context"})
+		return
+	}
+
+	// no need to call service layer since middleware has extracted the trip_request from db
+
+	c.JSON(200, gin.H{"trip_request": tripRequest})
+}

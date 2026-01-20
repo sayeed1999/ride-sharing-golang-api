@@ -59,6 +59,12 @@ func Test_ValidWorkflow_CustomerCancelRideBeforeDriverFound_E2E(t *testing.T) {
 	testhelper.AssertAndLogErrors(t, w, 204)
 
 	// Verify the ride status is "cancelled"
+	w = testhelper.DoJSONRequestWithAuth(t, testApp.Router(), "GET", "/trip-requests/"+tripRequest.ID.String(), nil, customerJwtToken)
+	testhelper.AssertAndLogErrors(t, w, 200)
+	tripRequest = extractTripRequestFromResponse(t, w)
+	if tripRequest.Status != domain.CUSTOMER_CANCELED {
+		t.Error("expected status: CUSTOMER_CANCELED, got something else")
+	}
 }
 
 func extractTripRequestFromResponse(t *testing.T, w *httptest.ResponseRecorder) domain.TripRequest {

@@ -37,5 +37,9 @@ func registerAllHTTPRoutes(rg *gin.RouterGroup, db *gorm.DB, cfg *config.Config)
 		tripRequests.DELETE("/:trip_request_id",
 			middleware.TripRequestMiddleware(tripRequestRepo), // sets trip_request in context !!
 			diContainer.TripRequestHandler.CancelTripRequest)
+
+		tripRequests.GET("/:trip_request_id",
+			middleware.TripRequestMiddleware(tripRequestRepo), // sets trip_request in context !!
+			diContainer.TripRequestHandler.GetDetails)
 	}
 }
