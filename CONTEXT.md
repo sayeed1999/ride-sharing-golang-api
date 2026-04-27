@@ -65,10 +65,21 @@ tests/                # tests outside unit tests, e.g integraton or e2e or other
 
 ### Unit Test + Mocking Conventions
 
-- Use `testify` for service unit tests and mock expectations/assertions.
-- Keep service tests split per service file (example: `customer_service.go` -> `customer_service_test.go`).
-- Keep reusable repository mocks in module-level `repository/mocks/` folders (for both trip and auth modules).
-- Service tests should validate business behavior through mocked dependencies, not DB integration.
+- Use `testify` for assertions, mocks, and test suites.
+- Keep test files aligned with source files (`x.go` -> `x_test.go`).
+- Prefer `t.Run()` subtests for scenarios; include happy path plus critical failure/edge path(s).
+- Prioritize critical business behavior over 100% coverage.
+- Keep reusable mocks under `<module>/repository/mocks/` (or closest dependency-level `mocks/` package).
+- Keep common setup, fixtures, and shared test constants in `test_helpers_test.go` (or equivalent helper files).
+- Prefer readable, low-noise tests: reuse fixtures/constants instead of repeated hardcoded values.
+- Mock matching rule:
+  - use strict argument matching only when field-level values are core behavior
+  - otherwise prefer `mock.Anything` to reduce brittleness
+- Always assert key side effects in important paths:
+  - expected calls
+  - expected non-calls
+  - error/status outcomes
+- Unit tests should validate business logic through mocked dependencies, not DB/network integration.
 
 ### Middleware Usage Importance
 
