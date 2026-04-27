@@ -3,14 +3,15 @@ package mocks
 import (
 	"github.com/google/uuid"
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/modules/trip/domain"
+	"github.com/sayeed1999/ride-sharing-golang-api/internal/modules/trip/repository"
 	"github.com/stretchr/testify/mock"
 )
 
-type ITripRequestRepository struct {
+type TripRequestRepository struct {
 	mock.Mock
 }
 
-func (m *ITripRequestRepository) Create(tr *domain.TripRequest) (*domain.TripRequest, error) {
+func (m *TripRequestRepository) Create(tr *domain.TripRequest) (*domain.TripRequest, error) {
 	args := m.Called(tr)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -18,7 +19,7 @@ func (m *ITripRequestRepository) Create(tr *domain.TripRequest) (*domain.TripReq
 	return args.Get(0).(*domain.TripRequest), args.Error(1)
 }
 
-func (m *ITripRequestRepository) FindByID(id uuid.UUID) (*domain.TripRequest, error) {
+func (m *TripRequestRepository) FindByID(id uuid.UUID) (*domain.TripRequest, error) {
 	args := m.Called(id)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -26,7 +27,7 @@ func (m *ITripRequestRepository) FindByID(id uuid.UUID) (*domain.TripRequest, er
 	return args.Get(0).(*domain.TripRequest), args.Error(1)
 }
 
-func (m *ITripRequestRepository) Update(tr *domain.TripRequest) (*domain.TripRequest, error) {
+func (m *TripRequestRepository) Update(tr *domain.TripRequest) (*domain.TripRequest, error) {
 	args := m.Called(tr)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -34,7 +35,10 @@ func (m *ITripRequestRepository) Update(tr *domain.TripRequest) (*domain.TripReq
 	return args.Get(0).(*domain.TripRequest), args.Error(1)
 }
 
-func (m *ITripRequestRepository) UpdateTripRequestStatus(tripRequestID uuid.UUID, status domain.TripRequestStatus) error {
+func (m *TripRequestRepository) UpdateTripRequestStatus(tripRequestID uuid.UUID, status domain.TripRequestStatus) error {
 	args := m.Called(tripRequestID, status)
 	return args.Error(0)
 }
+
+// proof of mock implementation
+var _ repository.ITripRequestRepository = (*TripRequestRepository)(nil)

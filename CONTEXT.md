@@ -63,6 +63,13 @@ tests/                # tests outside unit tests, e.g integraton or e2e or other
 - Error handling is mostly early-return style to reduce nested blocks.
 - Cross-module consistency during signup uses compensating actions (delete auth user when customer/driver creation fails), instead of a single distributed DB transaction.
 
+### Unit Test + Mocking Conventions
+
+- Use `testify` for service unit tests and mock expectations/assertions.
+- Keep service tests split per service file (example: `customer_service.go` -> `customer_service_test.go`).
+- Keep reusable repository mocks in module-level `repository/mocks/` folders (for both trip and auth modules).
+- Service tests should validate business behavior through mocked dependencies, not DB integration.
+
 ### Middleware Usage Importance
 
 - Middlewares are heavily used to centralize MUST-HAVE checks from similar domain endpoints e.g.,
