@@ -82,4 +82,3 @@ tests/                # tests outside unit tests, e.g integraton or e2e or other
 ## Do NOT
 
 - Do not assume a generic `internal/handlers` + `internal/services` monolith structure; this codebase is module-sliced under `internal/modules/*`.
-- 
