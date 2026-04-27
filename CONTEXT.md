@@ -56,6 +56,7 @@ tests/                # tests outside unit tests, e.g integraton or e2e or other
 ## Conventions Followed in Code
 
 - Auth module is completely isolated with separate db, because we may want to change whole auth impl later without breaking ride sharing business.
+- Customer signup and driver signup is separated because in real ride sharing they might have separate app. And it happens like trip module reaches to auth modules for signup. But for auth, it doesn't know about customer and driver, so it depends on trip module to send necessary details and do post signup activities.
 - For endpoints => Handler -> Service -> Repository layering is consistently used in every modules.
 - For schedulers/background jobs => Scheduler -> Service -> Repository layering will be followed.
 - Proper DI is mandatory through `di.go` in each module to make the whole business unit testable.
