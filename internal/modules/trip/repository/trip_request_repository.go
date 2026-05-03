@@ -13,6 +13,7 @@ type ITripRequestRepository interface {
 	FindByID(id uuid.UUID) (*domain.TripRequest, error)
 	Update(tr *domain.TripRequest) (*domain.TripRequest, error)
 	UpdateTripRequestStatus(tripRequestID uuid.UUID, status domain.TripRequestStatus) error
+	ListOpenTripRequests(limit int) ([]domain.TripRequest, error)
 }
 
 type TripRequestRepository struct {
@@ -43,4 +44,16 @@ func (r *TripRequestRepository) Update(tr *domain.TripRequest) (*domain.TripRequ
 
 func (r *TripRequestRepository) UpdateTripRequestStatus(tripRequestID uuid.UUID, status domain.TripRequestStatus) error {
 	return r.DB.Model(&domain.TripRequest{}).Where("id = ?", tripRequestID).Updates(map[string]interface{}{"status": status, "updated_at": time.Now()}).Error
+}
+
+func (r *TripRequestRepository) ListOpenTripRequests(limit int) ([]domain.TripRequest, error) {
+	var rows []domain.TripRequest
+	err := r.DB.Where("status = ?", domain.NO_DRIVER_FOUND).
+		Order("created_at DESC").
+		Limit(limit).
+		Find(&rows).Error
+	if err != nil {
+		return nil, err
+	}
+	return rows, nil
 }

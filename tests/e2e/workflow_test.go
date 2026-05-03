@@ -67,6 +67,63 @@ func Test_ValidWorkflow_CustomerCancelRideBeforeDriverFound_E2E(t *testing.T) {
 	}
 }
 
+func Test_DriverListsOpenTripRequests_E2E(t *testing.T) {
+	ctx := context.Background()
+	testApp := setup.NewTestApp(ctx, t, true)
+	defer testApp.CleanUp(ctx, t)
+
+	customerSignupPayload := dto.NewCustomerSignupRequest("customer-open@example.com", "Open List Customer", "password123")
+	w := testhelper.DoJSONRequest(t, testApp.Router(), "POST", "/customers/signup", customerSignupPayload)
+	testhelper.AssertAndLogErrors(t, w, 201)
+
+	w = testhelper.DoJSONRequest(t, testApp.Router(), "POST", "/login", dto.NewLoginRequest("customer-open@example.com", "password123"))
+	testhelper.AssertAndLogErrors(t, w, 200)
+	customerJwt := testhelper.ExtractTokenFromResponse(t, w)
+
+	driverSignupPayload := dto.NewDriverSignupRequest("driver-open@example.com", "Open List Driver", "password12345", "bike", "OPEN-123")
+	w = testhelper.DoJSONRequest(t, testApp.Router(), "POST", "/drivers/signup", driverSignupPayload)
+	testhelper.AssertAndLogErrors(t, w, 201)
+
+	w = testhelper.DoJSONRequest(t, testApp.Router(), "POST", "/login", dto.NewLoginRequest("driver-open@example.com", "password12345"))
+	testhelper.AssertAndLogErrors(t, w, 200)
+	driverJwt := testhelper.ExtractTokenFromResponse(t, w)
+
+	w = testhelper.DoJSONRequestWithAuth(t, testApp.Router(), "GET", "/drivers/trip-requests/open", nil, driverJwt)
+	testhelper.AssertAndLogErrors(t, w, 200)
+	var emptyList struct {
+		TripRequests []domain.TripRequest `json:"trip_requests"`
+	}
+	if err := json.NewDecoder(w.Body).Decode(&emptyList); err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	if len(emptyList.TripRequests) != 0 {
+		t.Fatalf("expected no open trips before customer request, got %d", len(emptyList.TripRequests))
+	}
+
+	tripPayload := dto.NewTripRequestDTO("Pickup", "Dropoff")
+	w = testhelper.DoJSONRequestWithAuth(t, testApp.Router(), "POST", "/trip-requests", tripPayload, customerJwt)
+	testhelper.AssertAndLogErrors(t, w, 201)
+	created := extractTripRequestFromResponse(t, w)
+
+	w = testhelper.DoJSONRequestWithAuth(t, testApp.Router(), "GET", "/drivers/trip-requests/open", nil, driverJwt)
+	testhelper.AssertAndLogErrors(t, w, 200)
+	var withOpen struct {
+		TripRequests []domain.TripRequest `json:"trip_requests"`
+	}
+	if err := json.NewDecoder(w.Body).Decode(&withOpen); err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	if len(withOpen.TripRequests) != 1 {
+		t.Fatalf("expected 1 open trip, got %d", len(withOpen.TripRequests))
+	}
+	if withOpen.TripRequests[0].ID != created.ID {
+		t.Fatalf("unexpected trip id")
+	}
+	if withOpen.TripRequests[0].Status != domain.NO_DRIVER_FOUND {
+		t.Fatalf("expected NO_DRIVER_FOUND, got %v", withOpen.TripRequests[0].Status)
+	}
+}
+
 func extractTripRequestFromResponse(t *testing.T, w *httptest.ResponseRecorder) domain.TripRequest {
 	t.Helper()
 

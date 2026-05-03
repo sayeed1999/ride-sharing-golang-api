@@ -64,7 +64,7 @@ func TestCancelTripRequestByCustomer(t *testing.T) {
 		tripRequestRepo.AssertExpectations(t)
 	})
 
-	t.Run("non cancellable status: returns stage error", func(t *testing.T) {
+	t.Run("cancel fails: cannot cancel trip request at this stage", func(t *testing.T) {
 		svc, tripRequestRepo := setupTripRequestService()
 
 		tripReq := &tripdomain.TripRequest{
@@ -80,3 +80,33 @@ func TestCancelTripRequestByCustomer(t *testing.T) {
 	})
 }
 
+func TestListOpenTripRequests(t *testing.T) {
+	t.Run("happy path: returns open trip requests from repository", func(t *testing.T) {
+		svc, tripRequestRepo := setupTripRequestService()
+
+		customerID := uuid.New()
+		open := []tripdomain.TripRequest{*fixtureTripRequest(customerID)}
+		tripRequestRepo.On("ListOpenTripRequests", 20).Return(open, nil).Once()
+
+		got, err := svc.ListOpenTripRequests(20)
+
+		require.NoError(t, err)
+		require.Len(t, got, 1)
+		assert.Equal(t, tripdomain.NO_DRIVER_FOUND, got[0].Status)
+		tripRequestRepo.AssertExpectations(t)
+	})
+
+	t.Run("repository error: propagates", func(t *testing.T) {
+		svc, tripRequestRepo := setupTripRequestService()
+
+		repoErr := errors.New("db error")
+		tripRequestRepo.On("ListOpenTripRequests", 5).Return(nil, repoErr).Once()
+
+		got, err := svc.ListOpenTripRequests(5)
+
+		require.Error(t, err)
+		assert.ErrorIs(t, err, repoErr)
+		assert.Nil(t, got)
+		tripRequestRepo.AssertExpectations(t)
+	})
+}

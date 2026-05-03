@@ -40,5 +40,13 @@ func (m *TripRequestRepository) UpdateTripRequestStatus(tripRequestID uuid.UUID,
 	return args.Error(0)
 }
 
+func (m *TripRequestRepository) ListOpenTripRequests(limit int) ([]domain.TripRequest, error) {
+	args := m.Called(limit)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]domain.TripRequest), args.Error(1)
+}
+
 // proof of mock implementation
 var _ repository.ITripRequestRepository = (*TripRequestRepository)(nil)

@@ -12,6 +12,7 @@ import (
 type ITripRequestService interface {
 	RequestTrip(customerID uuid.UUID, origin, destination string) (*domain.TripRequest, error)
 	CancelTripRequest(ctx context.Context, tripRequest *domain.TripRequest) error
+	ListOpenTripRequests(limit int) ([]domain.TripRequest, error)
 }
 
 type tripRequestService struct {
@@ -51,4 +52,8 @@ func (s *tripRequestService) CancelTripRequest(ctx context.Context, tripRequest 
 	}
 
 	return s.TripRequestRepository.UpdateTripRequestStatus(tripRequest.ID, domain.CUSTOMER_CANCELED)
+}
+
+func (s *tripRequestService) ListOpenTripRequests(limit int) ([]domain.TripRequest, error) {
+	return s.TripRequestRepository.ListOpenTripRequests(limit)
 }

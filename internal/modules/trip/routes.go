@@ -14,6 +14,7 @@ import (
 // It performs dependency injection for the HTTP diContainer internally.
 func registerAllHTTPRoutes(rg *gin.RouterGroup, db *gorm.DB, cfg *config.Config) {
 	var custRepo repository.ICustomerRepository = &repository.CustomerRepository{DB: db}
+	var driverRepo repository.IDriverRepository = &repository.DriverRepository{DB: db}
 	var tripRequestRepo repository.ITripRequestRepository = &repository.TripRequestRepository{DB: db}
 
 	diContainer := di.NewDIContainer(db, cfg)
@@ -26,6 +27,15 @@ func registerAllHTTPRoutes(rg *gin.RouterGroup, db *gorm.DB, cfg *config.Config)
 	drivers := rg.Group("/drivers")
 	{
 		drivers.POST("/signup", diContainer.DriverHandler.DriverSignup)
+	}
+
+	driversAuth := rg.Group("/drivers")
+	driversAuth.Use(
+		public_middleware.AuthMiddleware(cfg.Auth.JWTSecret),
+		middleware.DriverMiddleware(driverRepo),
+	)
+	{
+		driversAuth.GET("/trip-requests/open", diContainer.DriverHandler.ListOpenTripRequests)
 	}
 
 	tripRequests := rg.Group("/trip-requests")

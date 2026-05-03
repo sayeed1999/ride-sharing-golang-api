@@ -32,7 +32,7 @@ func NewDIContainer(db *gorm.DB, cfg *config.Config) *DIContainer {
 
 	// ======== Handlers =========
 	customerHandler := handler.NewCustomerHandler(customerService)
-	driverHandler := handler.NewDriverHandler(driverService)
+	driverHandler := handler.NewDriverHandler(driverService, tripRequestService)
 	tripRequestHandler := handler.NewTripRequestHandler(tripRequestService)
 
 	// ======== DI Container =========
