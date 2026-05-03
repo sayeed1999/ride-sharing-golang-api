@@ -12,7 +12,7 @@ import (
 )
 
 func TestCustomerSignup(t *testing.T) {
-	t.Run("happy path: registers auth user and creates customer", func(t *testing.T) {
+	t.Run("customer signup [happy path]: registers auth user -> assign role -> creates customer", func(t *testing.T) {
 		svc, customerRepo, authUserRepo := setupCustomerService()
 
 		authUserID := uuid.New()
@@ -52,4 +52,3 @@ func TestCustomerSignup(t *testing.T) {
 		customerRepo.AssertExpectations(t)
 	})
 }
-

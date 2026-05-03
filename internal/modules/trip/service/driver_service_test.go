@@ -13,7 +13,7 @@ import (
 )
 
 func TestDriverSignup(t *testing.T) {
-	t.Run("happy path: registers auth user and creates driver", func(t *testing.T) {
+	t.Run("driver signup [happy path]: registers auth user -> assign role -> creates driver", func(t *testing.T) {
 		svc, driverRepo, authUserRepo := setupDriverService()
 
 		authUserID := uuid.New()
@@ -56,4 +56,3 @@ func TestDriverSignup(t *testing.T) {
 		driverRepo.AssertExpectations(t)
 	})
 }
-
