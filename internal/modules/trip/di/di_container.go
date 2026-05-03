@@ -21,6 +21,7 @@ func NewDIContainer(db *gorm.DB, cfg *config.Config) *DIContainer {
 	var customerRepository repository.ICustomerRepository = &repository.CustomerRepository{DB: db}
 	var driverRepository repository.IDriverRepository = &repository.DriverRepository{DB: db}
 	var tripRequestRepository repository.ITripRequestRepository = &repository.TripRequestRepository{DB: db}
+	var tripRepository repository.ITripRepository = &repository.TripRepository{DB: db}
 
 	// ======== Other module services =========
 	authService := auth.NewUserService(db, cfg)
@@ -29,10 +30,11 @@ func NewDIContainer(db *gorm.DB, cfg *config.Config) *DIContainer {
 	customerService := service.NewCustomerService(customerRepository, authService)
 	driverService := service.NewDriverService(driverRepository, authService)
 	tripRequestService := service.NewTripRequestService(tripRequestRepository)
+	tripService := service.NewTripService(db, tripRequestRepository, tripRepository)
 
 	// ======== Handlers =========
 	customerHandler := handler.NewCustomerHandler(customerService)
-	driverHandler := handler.NewDriverHandler(driverService, tripRequestService)
+	driverHandler := handler.NewDriverHandler(driverService, tripRequestService, tripService)
 	tripRequestHandler := handler.NewTripRequestHandler(tripRequestService)
 
 	// ======== DI Container =========

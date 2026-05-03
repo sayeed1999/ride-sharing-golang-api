@@ -36,6 +36,8 @@ func registerAllHTTPRoutes(rg *gin.RouterGroup, db *gorm.DB, cfg *config.Config)
 	)
 	{
 		driversAuth.GET("/trip-requests/open", diContainer.DriverHandler.ListOpenTripRequests)
+		driversAuth.POST("/trip-requests/:trip_request_id/accept", diContainer.DriverHandler.AcceptTripRequest)
+		driversAuth.POST("/trips/:trip_id/start", diContainer.DriverHandler.StartTrip)
 	}
 
 	tripRequests := rg.Group("/trip-requests")

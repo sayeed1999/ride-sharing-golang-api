@@ -5,6 +5,7 @@ import (
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/modules/trip/domain"
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/modules/trip/repository"
 	"github.com/stretchr/testify/mock"
+	"gorm.io/gorm"
 )
 
 type TripRequestRepository struct {
@@ -38,6 +39,11 @@ func (m *TripRequestRepository) Update(tr *domain.TripRequest) (*domain.TripRequ
 func (m *TripRequestRepository) UpdateTripRequestStatus(tripRequestID uuid.UUID, status domain.TripRequestStatus) error {
 	args := m.Called(tripRequestID, status)
 	return args.Error(0)
+}
+
+func (m *TripRequestRepository) UpdateTripRequestStatusIf(db *gorm.DB, tripRequestID uuid.UUID, currentStatus, newStatus domain.TripRequestStatus) (bool, error) {
+	args := m.Called(db, tripRequestID, currentStatus, newStatus)
+	return args.Bool(0), args.Error(1)
 }
 
 func (m *TripRequestRepository) ListOpenTripRequests(limit int) ([]domain.TripRequest, error) {

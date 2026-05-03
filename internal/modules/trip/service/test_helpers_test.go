@@ -2,6 +2,8 @@ package service
 
 import (
 	"github.com/google/uuid"
+	"gorm.io/gorm"
+
 	authdomain "github.com/sayeed1999/ride-sharing-golang-api/internal/modules/auth/domain"
 	authmocks "github.com/sayeed1999/ride-sharing-golang-api/internal/modules/auth/repository/mocks"
 	authservice "github.com/sayeed1999/ride-sharing-golang-api/internal/modules/auth/service"
@@ -10,17 +12,17 @@ import (
 )
 
 const (
-	testCustomerEmail         = "customer@example.com"
-	testCustomerName          = "test customer"
-	testDriverEmail           = "driver@example.com"
-	testDriverName            = "test driver"
-	testPassword              = "password123"
-	testVehicleType           = "car"
-	testInvalidVehicleType    = "plane"
-	testVehicleRegistration   = "DHAKA-METRO-GA-12-1234"
-	testTripOrigin            = "A"
-	testTripDestination       = "B"
-	testNotFoundErrorMessage  = "not found"
+	testCustomerEmail        = "customer@example.com"
+	testCustomerName         = "test customer"
+	testDriverEmail          = "driver@example.com"
+	testDriverName           = "test driver"
+	testPassword             = "password123"
+	testVehicleType          = "car"
+	testInvalidVehicleType   = "plane"
+	testVehicleRegistration  = "DHAKA-METRO-GA-12-1234"
+	testTripOrigin           = "A"
+	testTripDestination      = "B"
+	testNotFoundErrorMessage = "not found"
 )
 
 func fixtureAuthUser(id uuid.UUID, email string) *authdomain.User {
@@ -79,3 +81,16 @@ func setupTripRequestService() (*tripRequestService, *tripmocks.TripRequestRepos
 	return svc, tripRequestRepo
 }
 
+// noopTxRunner runs the transactional callback without a real DB so repository mocks can handle all I/O.
+type noopTxRunner struct{}
+
+func (noopTxRunner) Transaction(fn func(tx *gorm.DB) error) error {
+	return fn(nil)
+}
+
+func setupTripService() (ITripService, *tripmocks.TripRequestRepository, *tripmocks.TripRepository) {
+	tripRequestRepo := new(tripmocks.TripRequestRepository)
+	tripRepo := new(tripmocks.TripRepository)
+	svc := newTripService(noopTxRunner{}, tripRequestRepo, tripRepo)
+	return svc, tripRequestRepo, tripRepo
+}
