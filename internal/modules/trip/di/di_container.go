@@ -10,6 +10,18 @@ import (
 )
 
 type DIContainer struct {
+	// repositories
+	CustomerRepository    repository.ICustomerRepository
+	DriverRepository      repository.IDriverRepository
+	TripRequestRepository repository.ITripRequestRepository
+
+	// services
+	CustomerService    service.ICustomerService
+	DriverService      service.IDriverService
+	TripRequestService service.ITripRequestService
+	TripService        service.ITripService
+
+	// handlers
 	CustomerHandler    *handler.CustomerHandler
 	DriverHandler      *handler.DriverHandler
 	TripRequestHandler *handler.TripRequestHandler
@@ -35,12 +47,21 @@ func NewDIContainer(db *gorm.DB, cfg *config.Config) *DIContainer {
 
 	// ======== Handlers =========
 	customerHandler := handler.NewCustomerHandler(customerService)
-	driverHandler := handler.NewDriverHandler(driverService, tripRequestService, tripService)
-	tripRequestHandler := handler.NewTripRequestHandler(tripRequestService)
+	driverHandler := handler.NewDriverHandler(driverService)
+	tripRequestHandler := handler.NewTripRequestHandler(tripRequestService, tripService)
 	tripHandler := handler.NewTripHandler(tripService, customerRepository, driverRepository)
 
 	// ======== DI Container =========
 	return &DIContainer{
+		CustomerRepository:    customerRepository,
+		DriverRepository:      driverRepository,
+		TripRequestRepository: tripRequestRepository,
+
+		CustomerService:    customerService,
+		DriverService:      driverService,
+		TripRequestService: tripRequestService,
+		TripService:        tripService,
+
 		CustomerHandler:    customerHandler,
 		DriverHandler:      driverHandler,
 		TripRequestHandler: tripRequestHandler,

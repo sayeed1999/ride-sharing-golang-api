@@ -48,7 +48,7 @@ func (s *tripRequestService) CancelTripRequest(ctx context.Context, tripRequest 
 
 	// Only allow cancellation if the trip is in NO_DRIVER_FOUND state
 	if tripRequest.Status != domain.NO_DRIVER_FOUND {
-		return errors.New("trip cannot be cancelled at this stage")
+		return errors.New("trip request cannot be cancelled at this stage")
 	}
 
 	return s.TripRequestRepository.UpdateTripRequestStatus(tripRequest.ID, domain.CUSTOMER_CANCELED)

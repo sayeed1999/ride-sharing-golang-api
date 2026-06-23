@@ -4,57 +4,63 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/sayeed1999/ride-sharing-golang-api/config"
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/modules/trip/di"
-	"github.com/sayeed1999/ride-sharing-golang-api/internal/modules/trip/repository"
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/pkg/middleware"
 	public_middleware "github.com/sayeed1999/ride-sharing-golang-api/pkg/middleware"
 	"gorm.io/gorm"
 )
 
-// RegisterAllHTTPRoutes registers all HTTP routes for the trip module.
-// It performs dependency injection for the HTTP diContainer internally.
+// registerAllHTTPRoutes registers all HTTP routes for the trip module.
 func registerAllHTTPRoutes(rg *gin.RouterGroup, db *gorm.DB, cfg *config.Config) {
-	var custRepo repository.ICustomerRepository = &repository.CustomerRepository{DB: db}
-	var driverRepo repository.IDriverRepository = &repository.DriverRepository{DB: db}
-	var tripRequestRepo repository.ITripRequestRepository = &repository.TripRequestRepository{DB: db}
+	c := di.NewDIContainer(db, cfg)
 
-	diContainer := di.NewDIContainer(db, cfg)
+	authMW := public_middleware.AuthMiddleware(cfg.Auth.JWTSecret)
+	customerMW := middleware.CustomerMiddleware(c.CustomerRepository)
+	driverMW := middleware.DriverMiddleware(c.DriverRepository)
 
-	customers := rg.Group("/customers")
-	{
-		customers.POST("/signup", diContainer.CustomerHandler.CustomerSignup)
-	}
+	registerCustomersRoutes(rg, c)
+	registerDriversRoutes(rg, c)
+	registerCustomerTripRequestRoutes(rg, c, authMW, customerMW)
+	registerDriverTripRequestRoutes(rg, c, authMW, driverMW)
+	registerTripRoutes(rg, c, authMW, driverMW)
+}
 
-	drivers := rg.Group("/drivers")
-	{
-		drivers.POST("/signup", diContainer.DriverHandler.DriverSignup)
-	}
+func registerCustomersRoutes(rg *gin.RouterGroup, c *di.DIContainer) {
+	rg.Group("/customers").
+		POST("/signup", c.CustomerHandler.CustomerSignup)
+}
 
-	auth := public_middleware.AuthMiddleware(cfg.Auth.JWTSecret)
+func registerDriversRoutes(rg *gin.RouterGroup, c *di.DIContainer) {
+	rg.Group("/drivers").
+		POST("/signup", c.DriverHandler.DriverSignup)
+}
 
-	tripRequests := rg.Group("/trip-requests")
-	{
-		tripRequests.GET("/open", auth, middleware.DriverMiddleware(driverRepo), diContainer.DriverHandler.ListOpenTripRequests)
-		tripRequests.POST("/:trip_request_id/accept", auth, middleware.DriverMiddleware(driverRepo), diContainer.DriverHandler.AcceptTripRequest)
-	}
+func registerCustomerTripRequestRoutes(rg *gin.RouterGroup, c *di.DIContainer, authMW, customerMW gin.HandlerFunc) {
+	g := rg.Group("/trip-requests")
+	g.Use(authMW, customerMW) // All routes must be authenticated and the user must be a customer
 
-	tripRequestsCustomer := rg.Group("/trip-requests")
-	tripRequestsCustomer.Use(auth, middleware.CustomerMiddleware(custRepo))
-	{
-		tripRequestsCustomer.POST("", diContainer.TripRequestHandler.RequestTrip)
+	tripRequestMW := middleware.TripRequestMiddleware(c.TripRequestRepository)
+	g.Group("/:trip_request_id").
+		Use(tripRequestMW). // trip request middleware to check if the trip request belongs to the customer
+		GET("", c.TripRequestHandler.GetDetails).
+		DELETE("", c.TripRequestHandler.CancelTripRequest)
 
-		tripRequestWithID := tripRequestsCustomer.Group("/:trip_request_id")
-		tripRequestWithID.Use(middleware.TripRequestMiddleware(tripRequestRepo))
-		{
-			tripRequestWithID.GET("", diContainer.TripRequestHandler.GetDetails)
-			tripRequestWithID.DELETE("", diContainer.TripRequestHandler.CancelTripRequest)
-		}
-	}
+	// Added at the end to avoid matching routes with the ones above
+	g.POST("", c.TripRequestHandler.RequestTrip)
+}
 
-	trips := rg.Group("/trips")
-	trips.Use(auth)
-	{
-		trips.POST("/:trip_id/start", middleware.DriverMiddleware(driverRepo), diContainer.TripHandler.StartTrip)
-		trips.POST("/:trip_id/complete", middleware.DriverMiddleware(driverRepo), diContainer.TripHandler.CompleteTrip)
-		trips.POST("/:trip_id/cancel", diContainer.TripHandler.CancelTrip)
-	}
+func registerDriverTripRequestRoutes(rg *gin.RouterGroup, c *di.DIContainer, auth, driverMW gin.HandlerFunc) {
+	_ = rg.Group("/trip-requests").
+		Use(auth, driverMW). // All routes must be authenticated and the user must be a driver
+		GET("/open", c.TripRequestHandler.ListOpenTripRequests).
+		POST("/:trip_request_id/accept", c.TripRequestHandler.AcceptTripRequest)
+}
+
+func registerTripRoutes(rg *gin.RouterGroup, c *di.DIContainer, auth, driverMW gin.HandlerFunc) {
+	_ = rg.Group("/trips/:trip_id").
+		Use(auth). // All routes must be authenticated
+		// The below require the user is a driver
+		POST("/start", driverMW, c.TripHandler.StartTrip).
+		POST("/complete", driverMW, c.TripHandler.CompleteTrip).
+		// Note: driverMW is not used because both customer and driver can cancel a trip!
+		POST("/cancel", c.TripHandler.CancelTrip)
 }
