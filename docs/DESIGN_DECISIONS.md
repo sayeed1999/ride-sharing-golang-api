@@ -31,6 +31,8 @@ We used facade pattern via `test_app.go` to wrap up these tasks into a single po
 
 ## Trip and Trip Request Separation
 
+**Implementation spec:** [`docs/specs/TRIP.md`](./specs/TRIP.md) (canonical for endpoints, statuses, and transitions).
+
 We have decided to use separate tables for `trip_requests` and `trips` for the following reasons:
 
 - **Data Integrity**: A `trip` must have a `driver_id`, but a `trip_request` does not. Having a single table would require the `driver_id` to be nullable, which could lead to data inconsistency.

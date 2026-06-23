@@ -90,6 +90,11 @@ tests/                # tests outside unit tests, e.g integraton or e2e or other
     - fetches the authenticated customer from context, & matches the trip_request belongs to this customer or not to stop fradulent attacks
     *Note: here it makes `trip_requst_middleware` completely dependent on `customer_middleware`, so must be added in call chain after it*
 
+## Trip module
+
+- **Implementation spec (canonical):** [`docs/specs/TRIP.md`](./docs/specs/TRIP.md) — endpoints, statuses, transitions, invariants.
+- Do not implement trip behavior from other docs; follow the spec.
+
 ## Do NOT
 
 - Do not assume a generic `internal/handlers` + `internal/services` monolith structure; this codebase is module-sliced under `internal/modules/*`.
