@@ -76,7 +76,7 @@ func TestCancelTripRequestByCustomer(t *testing.T) {
 		err := svc.CancelTripRequest(context.Background(), tripReq)
 
 		require.Error(t, err)
-		assert.EqualError(t, err, "trip cannot be cancelled at this stage")
+		assert.ErrorIs(t, err, ErrTripRequestInvalidState)
 		tripRequestRepo.AssertNotCalled(t, "UpdateTripRequestStatus", mock.Anything, mock.Anything)
 	})
 }

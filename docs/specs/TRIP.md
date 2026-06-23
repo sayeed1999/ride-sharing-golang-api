@@ -1,6 +1,6 @@
 # Trip Module Specification
 
-**Version:** 1.1  
+**Version:** 1.2  
 **Status:** Canonical — implementation source of truth  
 **Base path (production):** `/api/trip`  
 **Base path (e2e tests):** `/` (module mounted at root)
@@ -142,6 +142,7 @@ Register `GET /trip-requests/open` **before** `GET /trip-requests/:trip_request_
 7. Driver cancel allowed only from `TRIP_ACCEPTED` (before start).
 8. Customer cancel after accept allowed from `TRIP_ACCEPTED` or `TRIP_IN_PROGRESS`.
 9. On accept, `trip.customer_id` is set from `trip_request.customer_id` and never changes.
+10. Every status update must follow the transition table in §4; no ad-hoc or undocumented transitions.
 
 ---
 
@@ -167,5 +168,6 @@ Register `GET /trip-requests/open` **before** `GET /trip-requests/:trip_request_
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 1.2 | 2026-06-24 | Invariant: all status updates must follow §4 transition table |
 | 1.1 | 2026-06-24 | Document entity fields, `customer_id` on trips, authorization requirements |
 | 1.0 | 2026-06-23 | Initial spec: Option B routes, frozen trip_request on accept, trip lifecycle statuses |

@@ -94,6 +94,15 @@ tests/                # tests outside unit tests, e.g integraton or e2e or other
 - **Implementation spec (canonical):** [`docs/specs/TRIP.md`](./docs/specs/TRIP.md) — endpoints, statuses, transitions, invariants.
 - Do not implement trip behavior from other docs; follow the spec.
 
+### Status transition enforcement
+
+Allowed transitions are defined in TRIP.md §4. Code enforces them centrally:
+
+- **File:** `internal/modules/trip/domain/status_transitions.go`
+- **Shape:** `map[Status][]Status` for both `TripRequestStatus` and `TripStatus`, mirroring §4.
+- **Check:** `from.CanTransitionTo(to)` before any status update in services.
+- **Rule:** Do not add ad-hoc `if status == X` checks in handlers or services; extend the map when §4 changes.
+
 ## Do NOT
 
 - Do not assume a generic `internal/handlers` + `internal/services` monolith structure; this codebase is module-sliced under `internal/modules/*`.

@@ -11,8 +11,9 @@ import (
 )
 
 var (
-	ErrTripRequestNotOpen  = errors.New("trip request is not open for acceptance")
-	ErrTripRequestNotFound = errors.New("trip request not found")
+	ErrTripRequestNotOpen      = errors.New("trip request is not open for acceptance")
+	ErrTripRequestNotFound     = errors.New("trip request not found")
+	ErrTripRequestInvalidState = errors.New("trip request is not in a valid state for this action")
 )
 
 type ITripRequestService interface {
@@ -61,9 +62,8 @@ func (s *tripRequestService) RequestTrip(customerID uuid.UUID, origin, destinati
 func (s *tripRequestService) CancelTripRequest(ctx context.Context, tripRequest *domain.TripRequest) error {
 	// trip request middleware validates that the trip belongs to the customer
 
-	// Only allow cancellation if the trip is in NO_DRIVER_FOUND state
-	if tripRequest.Status != domain.NO_DRIVER_FOUND {
-		return errors.New("trip request cannot be cancelled at this stage")
+	if !tripRequest.Status.CanTransitionTo(domain.CUSTOMER_CANCELED) {
+		return ErrTripRequestInvalidState
 	}
 
 	return s.tripRequestRepository.UpdateTripRequestStatus(tripRequest.ID, domain.CUSTOMER_CANCELED)
@@ -83,7 +83,7 @@ func (s *tripRequestService) AcceptTripRequest(ctx context.Context, driverID, tr
 		}
 		return nil, nil, err
 	}
-	if tr.Status != domain.NO_DRIVER_FOUND {
+	if !tr.Status.CanTransitionTo(domain.DRIVER_ACCEPTED) {
 		return nil, nil, ErrTripRequestNotOpen
 	}
 

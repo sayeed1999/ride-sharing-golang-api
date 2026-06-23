@@ -69,12 +69,12 @@ func (s *tripService) StartTrip(ctx context.Context, driverID, tripID uuid.UUID)
 	if trip.DriverID != driverID {
 		return nil, ErrTripWrongDriver
 	}
-	if trip.Status != domain.TRIP_ACCEPTED {
+	if !trip.Status.CanTransitionTo(domain.TRIP_IN_PROGRESS) {
 		return nil, ErrTripInvalidState
 	}
 
 	err = s.txRunner.Transaction(func(tx *gorm.DB) error {
-		ok, err := s.tripRepo.UpdateTripStatus(tx, tripID, driverID, domain.TRIP_ACCEPTED, domain.TRIP_IN_PROGRESS)
+		ok, err := s.tripRepo.UpdateTripStatus(tx, tripID, driverID, trip.Status, domain.TRIP_IN_PROGRESS)
 		if err != nil {
 			return err
 		}
@@ -103,12 +103,12 @@ func (s *tripService) CompleteTrip(ctx context.Context, driverID, tripID uuid.UU
 	if trip.DriverID != driverID {
 		return nil, ErrTripWrongDriver
 	}
-	if trip.Status != domain.TRIP_IN_PROGRESS {
+	if !trip.Status.CanTransitionTo(domain.TRIP_COMPLETED) {
 		return nil, ErrTripInvalidState
 	}
 
 	err = s.txRunner.Transaction(func(tx *gorm.DB) error {
-		ok, err := s.tripRepo.UpdateTripStatus(tx, tripID, driverID, domain.TRIP_IN_PROGRESS, domain.TRIP_COMPLETED)
+		ok, err := s.tripRepo.UpdateTripStatus(tx, tripID, driverID, trip.Status, domain.TRIP_COMPLETED)
 		if err != nil {
 			return err
 		}
@@ -139,11 +139,8 @@ func (s *tripService) CancelTripByCustomer(ctx context.Context, customerID, trip
 		return nil, ErrTripNotOwnedByCustomer
 	}
 
-	var toStatus domain.TripStatus
-	switch trip.Status {
-	case domain.TRIP_ACCEPTED, domain.TRIP_IN_PROGRESS:
-		toStatus = domain.TRIP_CANCELLED_BY_CUSTOMER
-	default:
+	toStatus := domain.TRIP_CANCELLED_BY_CUSTOMER
+	if !trip.Status.CanTransitionTo(toStatus) {
 		return nil, ErrTripInvalidState
 	}
 
@@ -177,12 +174,13 @@ func (s *tripService) CancelTripByDriver(ctx context.Context, driverID, tripID u
 	if trip.DriverID != driverID {
 		return nil, ErrTripWrongDriver
 	}
-	if trip.Status != domain.TRIP_ACCEPTED {
+	toStatus := domain.TRIP_CANCELLED_BY_DRIVER
+	if !trip.Status.CanTransitionTo(toStatus) {
 		return nil, ErrTripInvalidState
 	}
 
 	err = s.txRunner.Transaction(func(tx *gorm.DB) error {
-		ok, err := s.tripRepo.UpdateTripStatus(tx, tripID, driverID, domain.TRIP_ACCEPTED, domain.TRIP_CANCELLED_BY_DRIVER)
+		ok, err := s.tripRepo.UpdateTripStatus(tx, tripID, driverID, trip.Status, toStatus)
 		if err != nil {
 			return err
 		}
