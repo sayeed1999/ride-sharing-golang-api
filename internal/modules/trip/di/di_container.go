@@ -13,6 +13,7 @@ type DIContainer struct {
 	CustomerHandler    *handler.CustomerHandler
 	DriverHandler      *handler.DriverHandler
 	TripRequestHandler *handler.TripRequestHandler
+	TripHandler        *handler.TripHandler
 }
 
 func NewDIContainer(db *gorm.DB, cfg *config.Config) *DIContainer {
@@ -36,11 +37,13 @@ func NewDIContainer(db *gorm.DB, cfg *config.Config) *DIContainer {
 	customerHandler := handler.NewCustomerHandler(customerService)
 	driverHandler := handler.NewDriverHandler(driverService, tripRequestService, tripService)
 	tripRequestHandler := handler.NewTripRequestHandler(tripRequestService)
+	tripHandler := handler.NewTripHandler(tripService, customerRepository, driverRepository)
 
 	// ======== DI Container =========
 	return &DIContainer{
 		CustomerHandler:    customerHandler,
 		DriverHandler:      driverHandler,
 		TripRequestHandler: tripRequestHandler,
+		TripHandler:        tripHandler,
 	}
 }

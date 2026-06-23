@@ -88,7 +88,7 @@ func Test_DriverListsOpenTripRequests_E2E(t *testing.T) {
 	testhelper.AssertAndLogErrors(t, w, 200)
 	driverJwt := testhelper.ExtractTokenFromResponse(t, w)
 
-	w = testhelper.DoJSONRequestWithAuth(t, testApp.Router(), "GET", "/drivers/trip-requests/open", nil, driverJwt)
+	w = testhelper.DoJSONRequestWithAuth(t, testApp.Router(), "GET", "/trip-requests/open", nil, driverJwt)
 	testhelper.AssertAndLogErrors(t, w, 200)
 	var emptyList struct {
 		TripRequests []domain.TripRequest `json:"trip_requests"`
@@ -105,7 +105,7 @@ func Test_DriverListsOpenTripRequests_E2E(t *testing.T) {
 	testhelper.AssertAndLogErrors(t, w, 201)
 	created := extractTripRequestFromResponse(t, w)
 
-	w = testhelper.DoJSONRequestWithAuth(t, testApp.Router(), "GET", "/drivers/trip-requests/open", nil, driverJwt)
+	w = testhelper.DoJSONRequestWithAuth(t, testApp.Router(), "GET", "/trip-requests/open", nil, driverJwt)
 	testhelper.AssertAndLogErrors(t, w, 200)
 	var withOpen struct {
 		TripRequests []domain.TripRequest `json:"trip_requests"`

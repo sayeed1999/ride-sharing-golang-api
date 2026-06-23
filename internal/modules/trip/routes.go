@@ -29,30 +29,32 @@ func registerAllHTTPRoutes(rg *gin.RouterGroup, db *gorm.DB, cfg *config.Config)
 		drivers.POST("/signup", diContainer.DriverHandler.DriverSignup)
 	}
 
-	driversAuth := rg.Group("/drivers")
-	driversAuth.Use(
-		public_middleware.AuthMiddleware(cfg.Auth.JWTSecret),
-		middleware.DriverMiddleware(driverRepo),
-	)
-	{
-		driversAuth.GET("/trip-requests/open", diContainer.DriverHandler.ListOpenTripRequests)
-		driversAuth.POST("/trip-requests/:trip_request_id/accept", diContainer.DriverHandler.AcceptTripRequest)
-		driversAuth.POST("/trips/:trip_id/start", diContainer.DriverHandler.StartTrip)
-	}
+	auth := public_middleware.AuthMiddleware(cfg.Auth.JWTSecret)
 
 	tripRequests := rg.Group("/trip-requests")
-	tripRequests.Use(
-		public_middleware.AuthMiddleware(cfg.Auth.JWTSecret),
-		middleware.CustomerMiddleware(custRepo),
-	)
 	{
-		tripRequests.POST("", diContainer.TripRequestHandler.RequestTrip)
+		tripRequests.GET("/open", auth, middleware.DriverMiddleware(driverRepo), diContainer.DriverHandler.ListOpenTripRequests)
+		tripRequests.POST("/:trip_request_id/accept", auth, middleware.DriverMiddleware(driverRepo), diContainer.DriverHandler.AcceptTripRequest)
+	}
 
-		tripRequestWithID := tripRequests.Group("/:trip_request_id")
+	tripRequestsCustomer := rg.Group("/trip-requests")
+	tripRequestsCustomer.Use(auth, middleware.CustomerMiddleware(custRepo))
+	{
+		tripRequestsCustomer.POST("", diContainer.TripRequestHandler.RequestTrip)
+
+		tripRequestWithID := tripRequestsCustomer.Group("/:trip_request_id")
 		tripRequestWithID.Use(middleware.TripRequestMiddleware(tripRequestRepo))
 		{
 			tripRequestWithID.GET("", diContainer.TripRequestHandler.GetDetails)
 			tripRequestWithID.DELETE("", diContainer.TripRequestHandler.CancelTripRequest)
 		}
+	}
+
+	trips := rg.Group("/trips")
+	trips.Use(auth)
+	{
+		trips.POST("/:trip_id/start", middleware.DriverMiddleware(driverRepo), diContainer.TripHandler.StartTrip)
+		trips.POST("/:trip_id/complete", middleware.DriverMiddleware(driverRepo), diContainer.TripHandler.CompleteTrip)
+		trips.POST("/:trip_id/cancel", diContainer.TripHandler.CancelTrip)
 	}
 }

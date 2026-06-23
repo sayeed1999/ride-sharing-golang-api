@@ -38,4 +38,9 @@ func (m *TripRepository) UpdateTripStatus(db *gorm.DB, tripID, driverID uuid.UUI
 	return args.Bool(0), args.Error(1)
 }
 
+func (m *TripRepository) UpdateTripStatusIf(db *gorm.DB, tripID uuid.UUID, from, to domain.TripStatus) (bool, error) {
+	args := m.Called(db, tripID, from, to)
+	return args.Bool(0), args.Error(1)
+}
+
 var _ repository.ITripRepository = (*TripRepository)(nil)

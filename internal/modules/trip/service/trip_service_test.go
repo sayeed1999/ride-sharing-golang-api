@@ -171,7 +171,7 @@ func TestStartTrip(t *testing.T) {
 	driverID := uuid.New()
 	otherDriverID := uuid.New()
 
-	t.Run("happy path: trip becomes in progress and request is started", func(t *testing.T) {
+	t.Run("happy path: trip becomes in progress", func(t *testing.T) {
 		svc, tripRequestRepo, tripRepo := setupTripService()
 
 		tripID := uuid.New()
@@ -192,8 +192,6 @@ func TestStartTrip(t *testing.T) {
 		tripRepo.On("FindByID", tripID).Return(acceptedTrip, nil).Once()
 		tripRepo.On("UpdateTripStatus", mock.Anything, tripID, driverID,
 			tripdomain.TRIP_ACCEPTED, tripdomain.TRIP_IN_PROGRESS).Return(true, nil).Once()
-		tripRequestRepo.On("UpdateTripRequestStatusIf", mock.Anything, tripRequestID,
-			tripdomain.DRIVER_ACCEPTED, tripdomain.TRIP_STARTED).Return(true, nil).Once()
 		tripRepo.On("FindByID", tripID).Return(startedTrip, nil).Once()
 
 		got, err := svc.StartTrip(context.Background(), driverID, tripID)
@@ -203,7 +201,7 @@ func TestStartTrip(t *testing.T) {
 		assert.Equal(t, tripdomain.TRIP_IN_PROGRESS, got.Status)
 
 		tripRepo.AssertExpectations(t)
-		tripRequestRepo.AssertExpectations(t)
+		tripRequestRepo.AssertNotCalled(t, "UpdateTripRequestStatusIf", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
 	})
 
 	t.Run("trip not found", func(t *testing.T) {
@@ -281,12 +279,43 @@ func TestStartTrip(t *testing.T) {
 		assert.Nil(t, got)
 		tripRequestRepo.AssertNotCalled(t, "UpdateTripRequestStatusIf", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
 	})
+}
 
-	t.Run("trip request status update does not match", func(t *testing.T) {
-		svc, tripRequestRepo, tripRepo := setupTripService()
+func TestCompleteTrip(t *testing.T) {
+	driverID := uuid.New()
+	tripID := uuid.New()
+	tripRequestID := uuid.New()
 
-		tripID := uuid.New()
-		tripRequestID := uuid.New()
+	t.Run("happy path", func(t *testing.T) {
+		svc, _, tripRepo := setupTripService()
+
+		inProgress := &tripdomain.Trip{
+			ID:            tripID,
+			TripRequestID: tripRequestID,
+			DriverID:      driverID,
+			Status:        tripdomain.TRIP_IN_PROGRESS,
+		}
+		completed := &tripdomain.Trip{
+			ID:            tripID,
+			TripRequestID: tripRequestID,
+			DriverID:      driverID,
+			Status:        tripdomain.TRIP_COMPLETED,
+		}
+
+		tripRepo.On("FindByID", tripID).Return(inProgress, nil).Once()
+		tripRepo.On("UpdateTripStatus", mock.Anything, tripID, driverID,
+			tripdomain.TRIP_IN_PROGRESS, tripdomain.TRIP_COMPLETED).Return(true, nil).Once()
+		tripRepo.On("FindByID", tripID).Return(completed, nil).Once()
+
+		got, err := svc.CompleteTrip(context.Background(), driverID, tripID)
+
+		require.NoError(t, err)
+		assert.Equal(t, tripdomain.TRIP_COMPLETED, got.Status)
+	})
+
+	t.Run("invalid state", func(t *testing.T) {
+		svc, _, tripRepo := setupTripService()
+
 		trip := &tripdomain.Trip{
 			ID:            tripID,
 			TripRequestID: tripRequestID,
@@ -294,15 +323,94 @@ func TestStartTrip(t *testing.T) {
 			Status:        tripdomain.TRIP_ACCEPTED,
 		}
 		tripRepo.On("FindByID", tripID).Return(trip, nil).Once()
-		tripRepo.On("UpdateTripStatus", mock.Anything, tripID, driverID,
-			tripdomain.TRIP_ACCEPTED, tripdomain.TRIP_IN_PROGRESS).Return(true, nil).Once()
-		tripRequestRepo.On("UpdateTripRequestStatusIf", mock.Anything, tripRequestID,
-			tripdomain.DRIVER_ACCEPTED, tripdomain.TRIP_STARTED).Return(false, nil).Once()
 
-		got, err := svc.StartTrip(context.Background(), driverID, tripID)
+		got, err := svc.CompleteTrip(context.Background(), driverID, tripID)
 
 		require.Error(t, err)
-		assert.ErrorIs(t, err, ErrTripStartConflict)
+		assert.ErrorIs(t, err, ErrTripInvalidState)
+		assert.Nil(t, got)
+	})
+}
+
+func TestCancelTripByCustomer(t *testing.T) {
+	customerID := uuid.New()
+	otherCustomerID := uuid.New()
+	tripID := uuid.New()
+	tripRequestID := uuid.New()
+
+	t.Run("happy path from accepted", func(t *testing.T) {
+		svc, tripRequestRepo, tripRepo := setupTripService()
+
+		trip := &tripdomain.Trip{
+			ID:            tripID,
+			TripRequestID: tripRequestID,
+			DriverID:      uuid.New(),
+			Status:        tripdomain.TRIP_ACCEPTED,
+		}
+		cancelled := &tripdomain.Trip{ID: tripID, TripRequestID: tripRequestID, Status: tripdomain.TRIP_CANCELLED_BY_CUSTOMER}
+		tr := &tripdomain.TripRequest{ID: tripRequestID, CustomerID: customerID}
+
+		tripRepo.On("FindByID", tripID).Return(trip, nil).Once()
+		tripRequestRepo.On("FindByID", tripRequestID).Return(tr, nil).Once()
+		tripRepo.On("UpdateTripStatusIf", mock.Anything, tripID,
+			tripdomain.TRIP_ACCEPTED, tripdomain.TRIP_CANCELLED_BY_CUSTOMER).Return(true, nil).Once()
+		tripRepo.On("FindByID", tripID).Return(cancelled, nil).Once()
+
+		got, err := svc.CancelTripByCustomer(context.Background(), customerID, tripID)
+
+		require.NoError(t, err)
+		assert.Equal(t, tripdomain.TRIP_CANCELLED_BY_CUSTOMER, got.Status)
+		tripRequestRepo.AssertNotCalled(t, "UpdateTripRequestStatus", mock.Anything, mock.Anything)
+	})
+
+	t.Run("not owned by customer", func(t *testing.T) {
+		svc, tripRequestRepo, tripRepo := setupTripService()
+
+		trip := &tripdomain.Trip{ID: tripID, TripRequestID: tripRequestID, Status: tripdomain.TRIP_ACCEPTED}
+		tr := &tripdomain.TripRequest{ID: tripRequestID, CustomerID: otherCustomerID}
+
+		tripRepo.On("FindByID", tripID).Return(trip, nil).Once()
+		tripRequestRepo.On("FindByID", tripRequestID).Return(tr, nil).Once()
+
+		got, err := svc.CancelTripByCustomer(context.Background(), customerID, tripID)
+
+		require.Error(t, err)
+		assert.ErrorIs(t, err, ErrTripNotOwnedByCustomer)
+		assert.Nil(t, got)
+	})
+}
+
+func TestCancelTripByDriver(t *testing.T) {
+	driverID := uuid.New()
+	tripID := uuid.New()
+
+	t.Run("happy path", func(t *testing.T) {
+		svc, _, tripRepo := setupTripService()
+
+		trip := &tripdomain.Trip{ID: tripID, TripRequestID: uuid.New(), DriverID: driverID, Status: tripdomain.TRIP_ACCEPTED}
+		cancelled := &tripdomain.Trip{ID: tripID, DriverID: driverID, Status: tripdomain.TRIP_CANCELLED_BY_DRIVER}
+
+		tripRepo.On("FindByID", tripID).Return(trip, nil).Once()
+		tripRepo.On("UpdateTripStatus", mock.Anything, tripID, driverID,
+			tripdomain.TRIP_ACCEPTED, tripdomain.TRIP_CANCELLED_BY_DRIVER).Return(true, nil).Once()
+		tripRepo.On("FindByID", tripID).Return(cancelled, nil).Once()
+
+		got, err := svc.CancelTripByDriver(context.Background(), driverID, tripID)
+
+		require.NoError(t, err)
+		assert.Equal(t, tripdomain.TRIP_CANCELLED_BY_DRIVER, got.Status)
+	})
+
+	t.Run("cannot cancel after start", func(t *testing.T) {
+		svc, _, tripRepo := setupTripService()
+
+		trip := &tripdomain.Trip{ID: tripID, DriverID: driverID, Status: tripdomain.TRIP_IN_PROGRESS}
+		tripRepo.On("FindByID", tripID).Return(trip, nil).Once()
+
+		got, err := svc.CancelTripByDriver(context.Background(), driverID, tripID)
+
+		require.Error(t, err)
+		assert.ErrorIs(t, err, ErrTripInvalidState)
 		assert.Nil(t, got)
 	})
 }

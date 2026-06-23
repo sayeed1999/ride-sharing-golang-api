@@ -86,36 +86,3 @@ func (h *DriverHandler) AcceptTripRequest(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, gin.H{"trip": trip, "trip_request": tr})
 }
-
-func (h *DriverHandler) StartTrip(c *gin.Context) {
-	driver, ok := c.MustGet("driver").(*domain.Driver)
-	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "driver not found in context"})
-		return
-	}
-
-	tripID, err := uuid.Parse(c.Param("trip_id"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid trip_id"})
-		return
-	}
-
-	trip, err := h.TripService.StartTrip(c.Request.Context(), driver.ID, tripID)
-	if err != nil {
-		switch {
-		case errors.Is(err, service.ErrTripNotFound):
-			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
-		case errors.Is(err, service.ErrTripWrongDriver):
-			c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
-		case errors.Is(err, service.ErrTripInvalidState):
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		case errors.Is(err, service.ErrTripStartConflict):
-			c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
-		default:
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		}
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"trip": trip})
-}

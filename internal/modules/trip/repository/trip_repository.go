@@ -14,6 +14,7 @@ type ITripRepository interface {
 	FindByID(id uuid.UUID) (*domain.Trip, error)
 	FindByTripRequestID(tripRequestID uuid.UUID) (*domain.Trip, error)
 	UpdateTripStatus(db *gorm.DB, tripID, driverID uuid.UUID, from, to domain.TripStatus) (bool, error)
+	UpdateTripStatusIf(db *gorm.DB, tripID uuid.UUID, from, to domain.TripStatus) (bool, error)
 }
 
 type TripRepository struct {
@@ -50,6 +51,16 @@ func (r *TripRepository) FindByTripRequestID(tripRequestID uuid.UUID) (*domain.T
 func (r *TripRepository) UpdateTripStatus(db *gorm.DB, tripID, driverID uuid.UUID, from, to domain.TripStatus) (bool, error) {
 	res := r.conn(db).Model(&domain.Trip{}).
 		Where("id = ? AND driver_id = ? AND status = ?", tripID, driverID, from).
+		Updates(map[string]interface{}{"status": to, "updated_at": time.Now()})
+	if res.Error != nil {
+		return false, res.Error
+	}
+	return res.RowsAffected == 1, nil
+}
+
+func (r *TripRepository) UpdateTripStatusIf(db *gorm.DB, tripID uuid.UUID, from, to domain.TripStatus) (bool, error) {
+	res := r.conn(db).Model(&domain.Trip{}).
+		Where("id = ? AND status = ?", tripID, from).
 		Updates(map[string]interface{}{"status": to, "updated_at": time.Now()})
 	if res.Error != nil {
 		return false, res.Error

@@ -11,6 +11,9 @@ type TripStatus int
 const (
 	TRIP_ACCEPTED TripStatus = iota + 1
 	TRIP_IN_PROGRESS
+	TRIP_COMPLETED
+	TRIP_CANCELLED_BY_CUSTOMER
+	TRIP_CANCELLED_BY_DRIVER
 )
 
 // Trip is an active assignment of a driver to a trip request after acceptance.

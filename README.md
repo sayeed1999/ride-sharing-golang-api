@@ -7,8 +7,7 @@ The main app **Ride-Sharing-Platform**, which is built with **.NET**, uses this 
 ## Find Project Documentations here
 
 - [Contribution Guidelines](./CONTRIBUTING.md)
-- [BRD - Business Requirement Document](./docs/BRD.md)
-- [PRD - Product Requirement Document](./docs/PRD.md)
+- [Trip Module Spec](./docs/specs/TRIP.md) (canonical implementation reference)
 - [Design Decisions](./docs/DESIGN_DECISIONS.md)
 - [Testing](./docs/TESTING.md)
 
