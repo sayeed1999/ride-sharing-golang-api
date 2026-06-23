@@ -1,6 +1,6 @@
 # Trip Module Specification
 
-**Version:** 1.0  
+**Version:** 1.1  
 **Status:** Canonical — implementation source of truth  
 **Base path (production):** `/api/trip`  
 **Base path (e2e tests):** `/` (module mounted at root)
@@ -17,6 +17,42 @@ Do not implement trip behavior from archived product docs. Follow this file.
 | **Trip** | Driver assignment + ride execution | Yes — all post-accept lifecycle |
 
 **Handoff rule:** On driver accept → set `trip_request` to `DRIVER_ACCEPTED` (terminal), create `trip` with `TRIP_ACCEPTED`. After that, **only update `trip`** for start, cancel, and complete.
+
+### Entity fields
+
+**TripRequest** (`trip.trip_requests`)
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `id` | UUID | Primary key |
+| `customer_id` | UUID | FK → `trip.customers` |
+| `origin` | string | Pickup location |
+| `destination` | string | Drop-off location |
+| `status` | int | See §2 |
+| `created_at`, `updated_at` | timestamptz | |
+
+**Trip** (`trip.trips`)
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `id` | UUID | Primary key |
+| `trip_request_id` | UUID | FK → `trip.trip_requests`, **unique** (one trip per request) |
+| `customer_id` | UUID | FK → `trip.customers`; copied from `trip_request` at accept |
+| `driver_id` | UUID | FK → `trip.drivers` |
+| `status` | int | See §3 |
+| `created_at`, `updated_at` | timestamptz | |
+
+`customer_id` is stored on `trips` at accept time so post-accept ownership checks use the trip row directly.
+
+### Authorization (requirements)
+
+| Action | Who may perform it |
+|--------|-------------------|
+| Create / read / cancel trip request (pre-accept) | Owning customer only |
+| List open trip requests | Any authenticated driver |
+| Accept trip request | Any authenticated driver (open requests only) |
+| Start / complete trip | Assigned driver only |
+| Cancel trip (after accept) | Owning customer or assigned driver (different cancel outcomes) |
 
 ---
 
@@ -50,20 +86,20 @@ Do not implement trip behavior from archived product docs. Follow this file.
 | From | To | Trigger | Actor | Endpoint |
 |------|-----|---------|-------|----------|
 | — | `NO_DRIVER_FOUND` | Create request | Customer | `POST /trip-requests` |
-| `NO_DRIVER_FOUND` | `CUSTOMER_CANCELED` | Cancel | Customer | `DELETE /trip-requests/:id` |
+| `NO_DRIVER_FOUND` | `CUSTOMER_CANCELED` | Cancel | Customer | `DELETE /trip-requests/:trip_request_id` |
 | `NO_DRIVER_FOUND` | `EXPIRED` | Timeout | System | *(not implemented)* |
-| `NO_DRIVER_FOUND` | `DRIVER_ACCEPTED` | Accept (+ create trip) | Driver | `POST /trip-requests/:id/accept` |
+| `NO_DRIVER_FOUND` | `DRIVER_ACCEPTED` | Accept (+ create trip) | Driver | `POST /trip-requests/:trip_request_id/accept` |
 
 ### Trip (post-accept only)
 
 | From | To | Trigger | Actor | Endpoint |
 |------|-----|---------|-------|----------|
-| — | `TRIP_ACCEPTED` | Accept | Driver | `POST /trip-requests/:id/accept` |
-| `TRIP_ACCEPTED` | `TRIP_IN_PROGRESS` | Start journey | Driver | `POST /trips/:id/start` |
-| `TRIP_ACCEPTED` | `TRIP_CANCELLED_BY_CUSTOMER` | Cancel | Customer | `POST /trips/:id/cancel` |
-| `TRIP_ACCEPTED` | `TRIP_CANCELLED_BY_DRIVER` | Cancel | Driver | `POST /trips/:id/cancel` |
-| `TRIP_IN_PROGRESS` | `TRIP_COMPLETED` | Complete | Driver | `POST /trips/:id/complete` |
-| `TRIP_IN_PROGRESS` | `TRIP_CANCELLED_BY_CUSTOMER` | Cancel mid-ride | Customer | `POST /trips/:id/cancel` |
+| — | `TRIP_ACCEPTED` | Accept | Driver | `POST /trip-requests/:trip_request_id/accept` |
+| `TRIP_ACCEPTED` | `TRIP_IN_PROGRESS` | Start journey | Driver | `POST /trips/:trip_id/start` |
+| `TRIP_ACCEPTED` | `TRIP_CANCELLED_BY_CUSTOMER` | Cancel | Customer | `POST /trips/:trip_id/cancel` |
+| `TRIP_ACCEPTED` | `TRIP_CANCELLED_BY_DRIVER` | Cancel | Driver | `POST /trips/:trip_id/cancel` |
+| `TRIP_IN_PROGRESS` | `TRIP_COMPLETED` | Complete | Driver | `POST /trips/:trip_id/complete` |
+| `TRIP_IN_PROGRESS` | `TRIP_CANCELLED_BY_CUSTOMER` | Cancel mid-ride | Customer | `POST /trips/:trip_id/cancel` |
 
 ---
 
@@ -105,6 +141,7 @@ Register `GET /trip-requests/open` **before** `GET /trip-requests/:trip_request_
 6. Driver cancel after accept → `trip` → `TRIP_CANCELLED_BY_DRIVER`; customer must create a **new** `trip_request` to retry.
 7. Driver cancel allowed only from `TRIP_ACCEPTED` (before start).
 8. Customer cancel after accept allowed from `TRIP_ACCEPTED` or `TRIP_IN_PROGRESS`.
+9. On accept, `trip.customer_id` is set from `trip_request.customer_id` and never changes.
 
 ---
 
@@ -130,4 +167,5 @@ Register `GET /trip-requests/open` **before** `GET /trip-requests/:trip_request_
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 1.1 | 2026-06-24 | Document entity fields, `customer_id` on trips, authorization requirements |
 | 1.0 | 2026-06-23 | Initial spec: Option B routes, frozen trip_request on accept, trip lifecycle statuses |

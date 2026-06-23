@@ -83,12 +83,11 @@ tests/                # tests outside unit tests, e.g integraton or e2e or other
 
 ### Middleware Usage Importance
 
-- Middlewares are heavily used to centralize MUST-HAVE checks from similar domain endpoints e.g.,
-  - `customer_middleware` checks valid customer or not and injects `customer` in context. Used in customer endpoints
-  - `driver_middleware` checks valid driver or not and injects `driver` in context. Used in driver endpoints (TODO)
-  - `trip_request_middleware` checks valid trip_request or not, then (MOST IMPORTANT)
-    - fetches the authenticated customer from context, & matches the trip_request belongs to this customer or not to stop fradulent attacks
-    *Note: here it makes `trip_requst_middleware` completely dependent on `customer_middleware`, so must be added in call chain after it*
+- Middlewares centralize MUST-HAVE checks for similar domain endpoints (see `internal/modules/trip/routes.go` for chains):
+  - `customer_middleware` — validates customer, injects `customer` into context. Used on customer trip-request routes.
+  - `driver_middleware` — validates driver, injects `driver` into context. Used on driver trip-request and trip start/complete routes.
+  - `trip_request_middleware` — loads trip request by ID and verifies it belongs to the authenticated customer. **Must run after `customer_middleware`.**
+  - `trip_middleware` — loads trip by ID and sets `trip` in context. Optionally verifies driver/customer ownership when those actors are already in context. Used on all `/trips/:trip_id` routes.
 
 ## Trip module
 
