@@ -75,10 +75,11 @@ func setupDriverService() (*driverService, *tripmocks.DriverRepository, *authmoc
 	return svc, driverRepo, authUserRepo
 }
 
-func setupTripRequestService() (*tripRequestService, *tripmocks.TripRequestRepository) {
+func setupTripRequestService() (ITripRequestService, *tripmocks.TripRequestRepository, *tripmocks.TripRepository) {
 	tripRequestRepo := new(tripmocks.TripRequestRepository)
-	svc := NewTripRequestService(tripRequestRepo).(*tripRequestService)
-	return svc, tripRequestRepo
+	tripRepo := new(tripmocks.TripRepository)
+	svc := newTripRequestService(noopTxRunner{}, tripRequestRepo, tripRepo)
+	return svc, tripRequestRepo, tripRepo
 }
 
 // noopTxRunner runs the transactional callback without a real DB so repository mocks can handle all I/O.
@@ -88,9 +89,8 @@ func (noopTxRunner) Transaction(fn func(tx *gorm.DB) error) error {
 	return fn(nil)
 }
 
-func setupTripService() (ITripService, *tripmocks.TripRequestRepository, *tripmocks.TripRepository) {
-	tripRequestRepo := new(tripmocks.TripRequestRepository)
+func setupTripService() (ITripService, *tripmocks.TripRepository) {
 	tripRepo := new(tripmocks.TripRepository)
-	svc := newTripService(noopTxRunner{}, tripRequestRepo, tripRepo)
-	return svc, tripRequestRepo, tripRepo
+	svc := newTripService(noopTxRunner{}, tripRepo)
+	return svc, tripRepo
 }

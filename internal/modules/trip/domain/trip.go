@@ -20,6 +20,7 @@ const (
 type Trip struct {
 	ID            uuid.UUID  `gorm:"type:uuid;primary_key;default:gen_random_uuid()" json:"id"`
 	TripRequestID uuid.UUID  `gorm:"type:uuid;not null;uniqueIndex" json:"trip_request_id"`
+	CustomerID    uuid.UUID  `gorm:"type:uuid;not null" json:"customer_id"`
 	DriverID      uuid.UUID  `gorm:"type:uuid;not null" json:"driver_id"`
 	Status        TripStatus `gorm:"not null" json:"status"`
 	CreatedAt     time.Time  `json:"created_at"`

@@ -56,11 +56,10 @@ func registerDriverTripRequestRoutes(rg *gin.RouterGroup, c *di.DIContainer, aut
 }
 
 func registerTripRoutes(rg *gin.RouterGroup, c *di.DIContainer, auth, driverMW gin.HandlerFunc) {
-	_ = rg.Group("/trips/:trip_id").
-		Use(auth). // All routes must be authenticated
-		// The below require the user is a driver
-		POST("/start", driverMW, c.TripHandler.StartTrip).
-		POST("/complete", driverMW, c.TripHandler.CompleteTrip).
-		// Note: driverMW is not used because both customer and driver can cancel a trip!
-		POST("/cancel", c.TripHandler.CancelTrip)
+	tripMW := middleware.TripMiddleware(c.TripRepository)
+
+	g := rg.Group("/trips/:trip_id").Use(auth)
+	g.POST("/start", driverMW, tripMW, c.TripHandler.StartTrip)
+	g.POST("/complete", driverMW, tripMW, c.TripHandler.CompleteTrip)
+	g.POST("/cancel", tripMW, c.TripHandler.CancelTrip)
 }

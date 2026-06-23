@@ -14,11 +14,10 @@ import (
 
 type TripRequestHandler struct {
 	TripRequestService service.ITripRequestService
-	TripService        service.ITripService
 }
 
-func NewTripRequestHandler(tripRequestService service.ITripRequestService, tripService service.ITripService) *TripRequestHandler {
-	return &TripRequestHandler{TripRequestService: tripRequestService, TripService: tripService}
+func NewTripRequestHandler(tripRequestService service.ITripRequestService) *TripRequestHandler {
+	return &TripRequestHandler{TripRequestService: tripRequestService}
 }
 
 func (h *TripRequestHandler) RequestTrip(c *gin.Context) {
@@ -105,7 +104,7 @@ func (h *TripRequestHandler) AcceptTripRequest(c *gin.Context) {
 		return
 	}
 
-	trip, tr, err := h.TripService.AcceptTripRequest(c.Request.Context(), driver.ID, tripRequestID)
+	trip, tr, err := h.TripRequestService.AcceptTripRequest(c.Request.Context(), driver.ID, tripRequestID)
 	if err != nil {
 		switch {
 		case errors.Is(err, service.ErrTripRequestNotFound):
