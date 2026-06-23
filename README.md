@@ -58,7 +58,7 @@ The api will be running on `localhost:8080`.
 To manually build the Docker image, run from terminal: -
 
 ```bash
-docker build -t ride-sharing-golang-api -f deployments/docker/Dockerfile .
+docker build -t ride-sharing-golang-api -f Dockerfile .
 ```
 
 ## Launch Container using Dockerfile
@@ -76,13 +76,13 @@ The api will be running on `localhost:8080`.
 To run through Docker Compose file, run from terminal: -
 
 ```noset
-docker compose -f deployments/docker/docker-compose.yml up -d
+docker compose up -d
 ```
 
 To stop the running containers, run: -
 
 ```noset
-docker-compose -f deployments/docker/docker-compose.yml down
+docker-compose down
 ```
 
 ## Troubleshooting
