@@ -1,14 +1,22 @@
-# Introduction
+# Ride Sharing Golang API
 
-This **Golang** microservice is a part of my project [**sayeed1999/Ride-Sharing-Platform**](https://github.com/sayeed1999/Ride-Sharing-Platform). This microservice contains the core algorithms e.g ride matchmaking, trip transition checking of the ride sharing app.
-
-The main app **Ride-Sharing-Platform**, which is built with **.NET**, uses this service as its microservice to do the core algorithm heavy lifting for it.
+Standalone **Go** API for ride-sharing: auth, trip requests, driver matching, and trip lifecycle management.
 
 ## Documentation
 
-- [Agent guide](./docs/AGENTS.md) — single source of truth for agents and contributors
-- [`AGENTS.md`](./AGENTS.md) — pointer to `docs/AGENTS.md` for coding agents
-- [`CLAUDE.md`](./CLAUDE.md) — pointer to `docs/AGENTS.md` for Claude Code
+[`docs/AGENTS.md`](./docs/AGENTS.md) is the single source of truth for AI-first workflows. Root `AGENTS.md` and `CLAUDE.md` point to it.
+
+```text
+AGENTS.md
+CLAUDE.md
+docs/
+  AGENTS.md
+  specs/
+  adr/
+  engineering/
+```
+
+- [Agent guide](./docs/AGENTS.md) — start here
 - [Trip spec](./docs/specs/TRIP.md) — canonical trip behavior
 
 ## Project Deployment Guide
