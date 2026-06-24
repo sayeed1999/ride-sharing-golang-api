@@ -4,12 +4,12 @@ This **Golang** microservice is a part of my project [**sayeed1999/Ride-Sharing-
 
 The main app **Ride-Sharing-Platform**, which is built with **.NET**, uses this service as its microservice to do the core algorithm heavy lifting for it.
 
-## Find Project Documentations here
+## Documentation
 
-- [Contribution Guidelines](./CONTRIBUTING.md)
-- [Trip Module Spec](./docs/specs/TRIP.md) (canonical implementation reference)
-- [Design Decisions](./docs/DESIGN_DECISIONS.md)
-- [Testing](./docs/TESTING.md)
+- [Agent guide](./docs/AGENTS.md) — single source of truth for agents and contributors
+- [`AGENTS.md`](./AGENTS.md) — pointer to `docs/AGENTS.md` for coding agents
+- [`CLAUDE.md`](./CLAUDE.md) — pointer to `docs/AGENTS.md` for Claude Code
+- [Trip spec](./docs/specs/TRIP.md) — canonical trip behavior
 
 ## Project Deployment Guide
 
@@ -84,17 +84,4 @@ To stop the running containers, run: -
 docker-compose down
 ```
 
-## Troubleshooting
-
-### Dirty Database Migration
-
-<i>We are using **golang-migrate** for managing database migrations.</i>
-
-In the event of a migration failure that results in a "dirty database" error, you may need to manually intervene to resolve the issue. This typically happens when a migration script fails midway, leaving the database in an inconsistent state. To fix this, you can follow these steps:
-
-1.  Open a PostgreSQL administration tool (e.g., pgAdmin).
-2.  Connect to the application database.
-3.  Navigate to the `public.schema_migrations` table.
-4.  You will see a row for each migration that has been applied. The `version` column corresponds to the migration file number, and the `dirty` column indicates whether the migration failed.
-5.  To fix a dirty migration, you will need to manually edit the corresponding row in the `schema_migrations` table. For example, if migration version 6 is dirty, you would change the `version` from 6 to 5 and the `dirty` column from `true` to `false`.
-6.  After manually fixing the `schema_migrations` table, you can run the down migration to revert the changes and then run the up migration again to apply the changes correctly.
+Troubleshooting: see [`docs/engineering/migrations.md`](./docs/engineering/migrations.md) for dirty database migration fixes.
