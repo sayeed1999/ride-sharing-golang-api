@@ -1,0 +1,61 @@
+
+{
+  "$schema": "https://opencode.ai/config.json",
+  "permission": {
+    "*": "ask",
+    "read": {
+      "*": "allow",
+      "*.env": "deny",
+      "*.env.*": "deny",
+      "*.env.example": "allow"
+    },
+    "edit": {
+      "*": "allow",
+      "*.env": "ask",
+      "*.env.*": "ask",
+      "*.env.example": "allow"
+    },
+    "bash": {
+      "*": "ask",
+
+      "pwd": "allow",
+      "ls": "allow",
+      "ls *": "allow",
+
+      "git status*": "allow",
+      "git diff*": "allow",
+      "git log*": "allow",
+
+      "go test *": "allow",
+      "go vet *": "allow",
+      "go build *": "allow",
+      "gofmt -w *": "allow",
+
+      "golangci-lint run": "allow",
+      "golangci-lint run *": "allow",
+      "staticcheck *": "allow",
+      "goimports -w *": "allow",
+
+      "npm test": "allow",
+      "npm run lint": "allow",
+      "npm run lint *": "allow",
+      "npm run typecheck": "allow",
+      "npm run build": "allow",
+      "npm run build *": "allow",
+
+      "pnpm test": "allow",
+      "pnpm run lint": "allow",
+      "pnpm run lint *": "allow",
+      "pnpm run typecheck": "allow",
+      "pnpm run build": "allow",
+      "pnpm run build *": "allow",
+
+      "rm -rf*": "deny",
+      "git push*": "deny",
+      "git reset --hard*": "deny",
+      "git clean -fd*": "deny",
+      "npm publish*": "deny",
+      "pnpm publish*": "deny"
+    }
+  }
+}
