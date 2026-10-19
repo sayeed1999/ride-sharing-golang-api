@@ -2,6 +2,7 @@ package trip
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/redis/go-redis/v9"
 	"github.com/sayeed1999/ride-sharing-golang-api/config"
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/modules/trip/di"
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/pkg/middleware"
@@ -10,18 +11,19 @@ import (
 )
 
 // registerAllHTTPRoutes registers all HTTP routes for the trip module.
-func registerAllHTTPRoutes(rg *gin.RouterGroup, db *gorm.DB, cfg *config.Config) {
-	c := di.NewDIContainer(db, cfg)
+func registerAllHTTPRoutes(rg *gin.RouterGroup, db *gorm.DB, cfg *config.Config, rdb *redis.Client) {
+	c := di.NewDIContainer(db, cfg, rdb)
 
 	authMW := public_middleware.AuthMiddleware(cfg.Auth.JWTSecret)
 	customerMW := middleware.CustomerMiddleware(c.CustomerRepository)
 	driverMW := middleware.DriverMiddleware(c.DriverRepository)
 
 	registerCustomersRoutes(rg, c)
-	registerDriversRoutes(rg, c)
+	registerDriversRoutes(rg, c, authMW, driverMW)
 	registerCustomerTripRequestRoutes(rg, c, authMW, customerMW)
 	registerDriverTripRequestRoutes(rg, c, authMW, driverMW)
 	registerTripRoutes(rg, c, authMW, driverMW)
+	registerLocationRoutes(rg, c, authMW)
 }
 
 func registerCustomersRoutes(rg *gin.RouterGroup, c *di.DIContainer) {
@@ -29,9 +31,10 @@ func registerCustomersRoutes(rg *gin.RouterGroup, c *di.DIContainer) {
 		POST("/signup", c.CustomerHandler.CustomerSignup)
 }
 
-func registerDriversRoutes(rg *gin.RouterGroup, c *di.DIContainer) {
-	rg.Group("/drivers").
-		POST("/signup", c.DriverHandler.DriverSignup)
+func registerDriversRoutes(rg *gin.RouterGroup, c *di.DIContainer, authMW, driverMW gin.HandlerFunc) {
+	g := rg.Group("/drivers")
+	g.POST("/signup", c.DriverHandler.DriverSignup)
+	g.POST("/location", authMW, driverMW, c.LocationHandler.UpdateDriverLocation)
 }
 
 func registerCustomerTripRequestRoutes(rg *gin.RouterGroup, c *di.DIContainer, authMW, customerMW gin.HandlerFunc) {
@@ -62,4 +65,9 @@ func registerTripRoutes(rg *gin.RouterGroup, c *di.DIContainer, auth, driverMW g
 	g.POST("/start", driverMW, tripMW, c.TripHandler.StartTrip)
 	g.POST("/complete", driverMW, tripMW, c.TripHandler.CompleteTrip)
 	g.POST("/cancel", tripMW, c.TripHandler.CancelTrip)
+}
+
+func registerLocationRoutes(rg *gin.RouterGroup, c *di.DIContainer, authMW gin.HandlerFunc) {
+	tripMW := middleware.TripMiddleware(c.TripRepository)
+	rg.GET("/trips/:trip_id/driver-location", authMW, tripMW, c.LocationHandler.GetDriverLocation)
 }

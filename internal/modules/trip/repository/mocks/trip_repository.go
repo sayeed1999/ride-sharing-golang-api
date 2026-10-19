@@ -33,6 +33,14 @@ func (m *TripRepository) FindByTripRequestID(tripRequestID uuid.UUID) (*domain.T
 	return args.Get(0).(*domain.Trip), args.Error(1)
 }
 
+func (m *TripRepository) FindActiveByDriverID(driverID uuid.UUID) (*domain.Trip, error) {
+	args := m.Called(driverID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*domain.Trip), args.Error(1)
+}
+
 func (m *TripRepository) UpdateTripStatus(db *gorm.DB, tripID, driverID uuid.UUID, from, to domain.TripStatus) (bool, error) {
 	args := m.Called(db, tripID, driverID, from, to)
 	return args.Bool(0), args.Error(1)

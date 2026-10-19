@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/redis/go-redis/v9"
 	"github.com/sayeed1999/ride-sharing-golang-api/config"
 	"github.com/sayeed1999/ride-sharing-golang-api/internal/database"
 	auth "github.com/sayeed1999/ride-sharing-golang-api/internal/modules/auth"
@@ -51,7 +52,27 @@ func setupContainer(ctx context.Context, t testing.TB) (tc.Container, config.Dat
 	return pgC, dbConfig
 }
 
-func buildConfig(t testing.TB, dbConfig config.DatabaseConfig, requireRoleOnRegistration bool) *config.Config {
+func setupRedisContainer(ctx context.Context, t testing.TB) (tc.Container, string) {
+	t.Helper()
+
+	req := tc.ContainerRequest{
+		Image:        "redis:7-alpine",
+		ExposedPorts: []string{"6379/tcp"},
+		WaitingFor:   wait.ForListeningPort("6379/tcp").WithStartupTimeout(30 * time.Second),
+	}
+
+	redisC, err := tc.GenericContainer(ctx, tc.GenericContainerRequest{ContainerRequest: req, Started: true})
+	require.NoError(t, err)
+
+	host, err := redisC.Host(ctx)
+	require.NoError(t, err)
+	mappedPort, err := redisC.MappedPort(ctx, "6379")
+	require.NoError(t, err)
+
+	return redisC, "redis://" + host + ":" + mappedPort.Port()
+}
+
+func buildConfig(t testing.TB, dbConfig config.DatabaseConfig, redisURL string, requireRoleOnRegistration bool) *config.Config {
 	t.Helper() // marks this function as a test helper
 
 	return &config.Config{
@@ -60,6 +81,9 @@ func buildConfig(t testing.TB, dbConfig config.DatabaseConfig, requireRoleOnRegi
 			Port: "7000",
 		},
 		Database: dbConfig,
+		Redis: config.RedisConfig{
+			URL: redisURL,
+		},
 		FeatureFlags: config.FeatureFlags{
 			RequireRoleOnRegistration: requireRoleOnRegistration,
 		},
@@ -83,13 +107,21 @@ func setupTestDB(t testing.TB, cfg *config.Config) *gorm.DB {
 	return db
 }
 
-func setupRouter(t testing.TB, db *gorm.DB, cfg *config.Config) *gin.Engine {
+func setupRedis(t testing.TB, cfg *config.Config) *redis.Client {
+	t.Helper()
+
+	client, err := database.InitRedis(cfg)
+	require.NoError(t, err)
+	return client
+}
+
+func setupRouter(t testing.TB, db *gorm.DB, cfg *config.Config, rdb *redis.Client) *gin.Engine {
 	t.Helper() // marks this function as a test helper
 
 	gin.SetMode(gin.TestMode)
 	r := gin.New()
 	// expose routes at root so endpoints are /register, /login and /customers/signup
 	auth.ExposeRoutes(r.Group(""), db, cfg)
-	trip.ExposeRoutes(r.Group(""), db, cfg)
+	trip.ExposeRoutes(r.Group(""), db, cfg, rdb)
 	return r
 }

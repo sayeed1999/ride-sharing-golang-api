@@ -124,6 +124,65 @@ func Test_DriverListsOpenTripRequests_E2E(t *testing.T) {
 	}
 }
 
+func Test_DriverLocationTracking_E2E(t *testing.T) {
+	ctx := context.Background()
+	testApp := setup.NewTestApp(ctx, t, true)
+	defer testApp.CleanUp(ctx, t)
+
+	customerSignup := dto.NewCustomerSignupRequest("customer-loc@example.com", "Loc Customer", "password123")
+	w := testhelper.DoJSONRequest(t, testApp.Router(), "POST", "/customers/signup", customerSignup)
+	testhelper.AssertAndLogErrors(t, w, 201)
+
+	w = testhelper.DoJSONRequest(t, testApp.Router(), "POST", "/login", dto.NewLoginRequest("customer-loc@example.com", "password123"))
+	testhelper.AssertAndLogErrors(t, w, 200)
+	customerJwt := testhelper.ExtractTokenFromResponse(t, w)
+
+	driverSignup := dto.NewDriverSignupRequest("driver-loc@example.com", "Loc Driver", "password12345", "bike", "LOC-123")
+	w = testhelper.DoJSONRequest(t, testApp.Router(), "POST", "/drivers/signup", driverSignup)
+	testhelper.AssertAndLogErrors(t, w, 201)
+
+	w = testhelper.DoJSONRequest(t, testApp.Router(), "POST", "/login", dto.NewLoginRequest("driver-loc@example.com", "password12345"))
+	testhelper.AssertAndLogErrors(t, w, 200)
+	driverJwt := testhelper.ExtractTokenFromResponse(t, w)
+
+	w = testhelper.DoJSONRequestWithAuth(t, testApp.Router(), "POST", "/trip-requests", dto.NewTripRequestDTO("A", "B"), customerJwt)
+	testhelper.AssertAndLogErrors(t, w, 201)
+	tripRequest := extractTripRequestFromResponse(t, w)
+
+	w = testhelper.DoJSONRequestWithAuth(t, testApp.Router(), "POST", "/trip-requests/"+tripRequest.ID.String()+"/accept", nil, driverJwt)
+	testhelper.AssertAndLogErrors(t, w, 201)
+	trip := extractTripFromResponse(t, w)
+
+	locationPayload := dto.NewUpdateDriverLocationRequest(23.78, 90.41, nil, nil)
+	w = testhelper.DoJSONRequestWithAuth(t, testApp.Router(), "POST", "/drivers/location", locationPayload, driverJwt)
+	testhelper.AssertAndLogErrors(t, w, 204)
+
+	w = testhelper.DoJSONRequestWithAuth(t, testApp.Router(), "GET", "/trips/"+trip.ID.String()+"/driver-location", nil, customerJwt)
+	testhelper.AssertAndLogErrors(t, w, 200)
+
+	var response struct {
+		DriverLocation domain.DriverLocation `json:"driver_location"`
+	}
+	if err := json.NewDecoder(w.Body).Decode(&response); err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	if response.DriverLocation.Lat != 23.78 || response.DriverLocation.Lng != 90.41 {
+		t.Fatalf("unexpected location: %+v", response.DriverLocation)
+	}
+}
+
+func extractTripFromResponse(t *testing.T, w *httptest.ResponseRecorder) domain.Trip {
+	t.Helper()
+
+	var response struct {
+		Trip domain.Trip `json:"trip"`
+	}
+	if err := json.NewDecoder(w.Body).Decode(&response); err != nil {
+		t.Fatalf("failed to decode trip response: %v", err)
+	}
+	return response.Trip
+}
+
 func extractTripRequestFromResponse(t *testing.T, w *httptest.ResponseRecorder) domain.TripRequest {
 	t.Helper()
 

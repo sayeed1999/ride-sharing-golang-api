@@ -12,5 +12,7 @@ export PGADMIN_EMAIL=admin@local.com
 
 export REQUIRE_ROLE_ON_REGISTRATION=true
 
+export Redis__URL=redis://0.0.0.0:6379
+
 # JWT secret used to sign access tokens in local dev. Replace in production.
 export JWT_SECRET=dev_jwt_secret_change_me

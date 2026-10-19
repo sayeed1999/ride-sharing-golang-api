@@ -13,6 +13,7 @@ type ITripRepository interface {
 	Create(db *gorm.DB, t *domain.Trip) error
 	FindByID(id uuid.UUID) (*domain.Trip, error)
 	FindByTripRequestID(tripRequestID uuid.UUID) (*domain.Trip, error)
+	FindActiveByDriverID(driverID uuid.UUID) (*domain.Trip, error)
 	UpdateTripStatus(db *gorm.DB, tripID, driverID uuid.UUID, from, to domain.TripStatus) (bool, error)
 	UpdateTripStatusIf(db *gorm.DB, tripID uuid.UUID, from, to domain.TripStatus) (bool, error)
 }
@@ -43,6 +44,18 @@ func (r *TripRepository) FindByID(id uuid.UUID) (*domain.Trip, error) {
 func (r *TripRepository) FindByTripRequestID(tripRequestID uuid.UUID) (*domain.Trip, error) {
 	var row domain.Trip
 	if err := r.DB.First(&row, "trip_request_id = ?", tripRequestID).Error; err != nil {
+		return nil, err
+	}
+	return &row, nil
+}
+
+func (r *TripRepository) FindActiveByDriverID(driverID uuid.UUID) (*domain.Trip, error) {
+	var row domain.Trip
+	err := r.DB.
+		Where("driver_id = ? AND status IN ?", driverID, []domain.TripStatus{domain.TRIP_ACCEPTED, domain.TRIP_IN_PROGRESS}).
+		Order("created_at DESC").
+		First(&row).Error
+	if err != nil {
 		return nil, err
 	}
 	return &row, nil
