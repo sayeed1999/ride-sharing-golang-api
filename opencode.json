@@ -1,61 +1,54 @@
-
 {
   "$schema": "https://opencode.ai/config.json",
-  "permission": {
-    "*": "ask",
-    "read": {
-      "*": "allow",
-      "*.env": "deny",
-      "*.env.*": "deny",
-      "*.env.example": "allow"
-    },
-    "edit": {
-      "*": "allow",
-      "*.env": "ask",
-      "*.env.*": "ask",
-      "*.env.example": "allow"
-    },
-    "bash": {
-      "*": "ask",
+  "permissions": [
+    { "action": "*", "resource": "*", "effect": "ask" },
 
-      "pwd": "allow",
-      "ls": "allow",
-      "ls *": "allow",
+    { "action": "external_directory", "resource": "*", "effect": "ask" },
 
-      "git status*": "allow",
-      "git diff*": "allow",
-      "git log*": "allow",
+    { "action": "read", "resource": "*", "effect": "allow" },
+    { "action": "read", "resource": "*.env", "effect": "deny" },
+    { "action": "read", "resource": "*.env.*", "effect": "deny" },
+    { "action": "read", "resource": "*.env.example", "effect": "allow" },
 
-      "go test *": "allow",
-      "go vet *": "allow",
-      "go build *": "allow",
-      "gofmt -w *": "allow",
+    { "action": "edit", "resource": "*", "effect": "allow" },
+    { "action": "edit", "resource": "*.env", "effect": "ask" },
+    { "action": "edit", "resource": "*.env.*", "effect": "ask" },
+    { "action": "edit", "resource": "*.env.example", "effect": "allow" },
 
-      "golangci-lint run": "allow",
-      "golangci-lint run *": "allow",
-      "staticcheck *": "allow",
-      "goimports -w *": "allow",
+    { "action": "shell", "resource": "*", "effect": "ask" },
+    { "action": "shell", "resource": "pwd", "effect": "allow" },
+    { "action": "shell", "resource": "ls *", "effect": "allow" },
+    { "action": "shell", "resource": "find *", "effect": "allow" },
+    { "action": "shell", "resource": "sort *", "effect": "allow" },
 
-      "npm test": "allow",
-      "npm run lint": "allow",
-      "npm run lint *": "allow",
-      "npm run typecheck": "allow",
-      "npm run build": "allow",
-      "npm run build *": "allow",
+    { "action": "shell", "resource": "git status *", "effect": "allow" },
+    { "action": "shell", "resource": "git diff *", "effect": "allow" },
+    { "action": "shell", "resource": "git log *", "effect": "allow" },
 
-      "pnpm test": "allow",
-      "pnpm run lint": "allow",
-      "pnpm run lint *": "allow",
-      "pnpm run typecheck": "allow",
-      "pnpm run build": "allow",
-      "pnpm run build *": "allow",
+    { "action": "shell", "resource": "go test *", "effect": "allow" },
+    { "action": "shell", "resource": "go vet *", "effect": "allow" },
+    { "action": "shell", "resource": "go build *", "effect": "allow" },
+    { "action": "shell", "resource": "gofmt -w *", "effect": "allow" },
 
-      "rm -rf*": "deny",
-      "git push*": "deny",
-      "git reset --hard*": "deny",
-      "git clean -fd*": "deny",
-      "npm publish*": "deny",
-      "pnpm publish*": "deny"
-    }
-  }
+    { "action": "shell", "resource": "golangci-lint run *", "effect": "allow" },
+    { "action": "shell", "resource": "staticcheck *", "effect": "allow" },
+    { "action": "shell", "resource": "goimports -w *", "effect": "allow" },
+
+    { "action": "shell", "resource": "npm test", "effect": "allow" },
+    { "action": "shell", "resource": "npm run lint *", "effect": "allow" },
+    { "action": "shell", "resource": "npm run typecheck", "effect": "allow" },
+    { "action": "shell", "resource": "npm run build *", "effect": "allow" },
+
+    { "action": "shell", "resource": "pnpm test", "effect": "allow" },
+    { "action": "shell", "resource": "pnpm run lint *", "effect": "allow" },
+    { "action": "shell", "resource": "pnpm run typecheck", "effect": "allow" },
+    { "action": "shell", "resource": "pnpm run build *", "effect": "allow" },
+
+    { "action": "shell", "resource": "rm -rf*", "effect": "deny" },
+    { "action": "shell", "resource": "git push *", "effect": "deny" },
+    { "action": "shell", "resource": "git reset --hard *", "effect": "deny" },
+    { "action": "shell", "resource": "git clean -fd *", "effect": "deny" },
+    { "action": "shell", "resource": "npm publish *", "effect": "deny" },
+    { "action": "shell", "resource": "pnpm publish *", "effect": "deny" }
+  ]
 }
